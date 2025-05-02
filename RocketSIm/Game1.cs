@@ -18,10 +18,10 @@ namespace RocketSim
         Vector2 rocketVelocity;
         Vector2 rocketAcceleration;
 
-        float gravityConstant = 100000f;
+        float gravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
         Vector2 planetCenter;
 
-        float thrustPower = 300f;
+        float thrustPower = 20000f; //in Newtons (which are kg*m/s^2)
         float rocketRotation = 0f;
         float rotationSpeed = MathHelper.ToRadians(90f);
 
@@ -29,6 +29,9 @@ namespace RocketSim
         float fuelBurnRate = 20f;
 
         float groundY;
+
+        float rocketMass = 1000f; // in kg
+        float earthMass = 5.972e24f; // in kg
 
         public Game1()
         {
@@ -41,16 +44,21 @@ namespace RocketSim
 
         protected override void Initialize()
         {
-            _graphics.PreferredBackBufferWidth = 800;
-            _graphics.PreferredBackBufferHeight = 600;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
 
-            rocketPosition = new Vector2(400, 500);
-            rocketVelocity = new Vector2(80, -100);
-            rocketAcceleration = Vector2.Zero;
+            int earthRadius = 6371000; // in meters
+            planetCenter = new Vector2(400, -1 * earthRadius);
 
-            planetCenter = new Vector2(400, 300);
-            groundY = _graphics.PreferredBackBufferHeight - 50;
+            int groundBuffer = 50; // 50 pixels above the bottom of the screen
+            groundY = _graphics.PreferredBackBufferHeight - groundBuffer;
+
+            // Set the initial state vectors of the rocket
+            int middleOfScreen = _graphics.PreferredBackBufferWidth / 2;
+            rocketPosition = new Vector2(middleOfScreen, groundY);
+            rocketVelocity = new Vector2(0, 0);
+            rocketAcceleration = Vector2.Zero;
 
             base.Initialize();
         }
@@ -81,7 +89,8 @@ namespace RocketSim
             Vector2 directionToPlanet = planetCenter - rocketPosition;
             float distance = directionToPlanet.Length();
             directionToPlanet.Normalize();
-            float gravityForce = gravityConstant / (distance * distance);
+            float gravityForce = -gravityConstant * earthMass * rocketMass / (distance * distance);
+
             rocketAcceleration = directionToPlanet * gravityForce;
 
             if (keyboardState.IsKeyDown(Keys.Space) && fuel > 0)
@@ -96,10 +105,13 @@ namespace RocketSim
             rocketPosition += rocketVelocity * dt;
 
             float rocketHeight = rocketTexture?.Height ?? 64;
+            
+            //set velocity to zero when rocket hits the ground
             if (rocketPosition.Y + rocketHeight / 2f >= groundY)
             {
                 rocketPosition.Y = groundY - rocketHeight / 2f;
-                rocketVelocity.Y = 0;
+                rocketVelocity = Vector2.Zero;
+                rocketAcceleration = Vector2.Zero;
             }
 
             base.Update(gameTime);
