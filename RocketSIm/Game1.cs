@@ -34,7 +34,7 @@ namespace RocketSim
         {
             _graphics = new GraphicsDeviceManager(this);
             // Set full screen mode
-            //_graphics.IsFullScreen = true;
+            _graphics.IsFullScreen = true;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
