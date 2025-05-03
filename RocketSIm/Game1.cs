@@ -21,16 +21,18 @@ namespace RocketSim
         float gravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
         Vector2 planetCenter;
 
-        float thrustPower = 20000f; //in Newtons (which are kg*m/s^2)
+        private RocketProperties _rocketProperties;
+
+        //float thrustPower = 20000f; //in Newtons (which are kg*m/s^2)
         float rocketRotation = 0f;
         float rotationSpeed = MathHelper.ToRadians(90f);
 
-        float fuel = 100f;
-        float fuelBurnRate = 20f;
+        //float fuel = 100f;
+        //float fuelBurnRate = 20f;
 
         float groundY;
 
-        float rocketMass = 1000f; // in kg
+        //float rocketMass = 1000f; // in kg
         float earthMass = 5.972e24f; // in kg
 
         public Game1()
@@ -59,6 +61,14 @@ namespace RocketSim
             rocketPosition = new Vector2(middleOfScreen, groundY);
             rocketVelocity = new Vector2(0, 0);
             rocketAcceleration = Vector2.Zero;
+
+            // Initialize RocketProperties
+            _rocketProperties = new RocketProperties(
+                thrustPower: 20000f, // in Newtons
+                fuel: 100f, // in units
+                fuelBurnRate: 20f, // in units per second
+                rocketMass: 1000f // in kilograms
+            );
 
             base.Initialize();
         }
@@ -89,16 +99,16 @@ namespace RocketSim
             Vector2 directionToPlanet = planetCenter - rocketPosition;
             float distance = directionToPlanet.Length();
             directionToPlanet.Normalize();
-            float gravityForce = -gravityConstant * earthMass * rocketMass / (distance * distance);
+            float gravityForce = -gravityConstant * earthMass * _rocketProperties.RocketMass / (distance * distance);
 
             rocketAcceleration = directionToPlanet * gravityForce;
 
-            if (keyboardState.IsKeyDown(Keys.Space) && fuel > 0)
+            if (keyboardState.IsKeyDown(Keys.Space) && _rocketProperties.Fuel > 0)
             {
-                Vector2 thrust = new Vector2((float)Math.Sin(rocketRotation), -(float)Math.Cos(rocketRotation)) * thrustPower;
+                Vector2 thrust = new Vector2((float)Math.Sin(rocketRotation), -(float)Math.Cos(rocketRotation)) * _rocketProperties.ThrustPower;
                 rocketAcceleration += thrust;
-                fuel -= fuelBurnRate * dt;
-                if (fuel < 0) fuel = 0;
+                _rocketProperties.Fuel -= _rocketProperties.FuelBurnRate * dt;
+                if (_rocketProperties.Fuel < 0) _rocketProperties.Fuel = 0;
             }
 
             rocketVelocity += rocketAcceleration * dt;
@@ -133,7 +143,7 @@ namespace RocketSim
                 0f);
             _spriteBatch.Draw(groundTexture, new Rectangle(0, (int)groundY, _graphics.PreferredBackBufferWidth, 5), Color.Green);
             if (font != null)
-                _spriteBatch.DrawString(font, $"Fuel: {fuel:F1}", new Vector2(10, 10), Color.White);
+                _spriteBatch.DrawString(font, $"Fuel: {_rocketProperties.Fuel:F1}", new Vector2(10, 10), Color.White);
             _spriteBatch.End();
             base.Draw(gameTime);
         }
