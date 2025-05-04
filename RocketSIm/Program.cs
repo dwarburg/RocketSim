@@ -1,14 +1,13 @@
 using System;
 
-namespace RocketSim
+namespace RocketSim;
+
+public static class Program
 {
-    public static class Program
+    [STAThread]
+    private static void Main()
     {
-        [STAThread]
-        static void Main()
-        {
-            using var game = new Game1();
-            game.Run();
-        }
+        using var game = new Game1();
+        game.Run();
     }
 }

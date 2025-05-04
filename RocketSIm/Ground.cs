@@ -1,16 +1,6 @@
-using Microsoft.Xna.Framework;
+namespace RocketSim;
 
-public class Ground
+public class Ground(float screenHeight, float buffer)
 {
-    public float Y { get; private set; }
-
-    public Ground(float screenHeight, float buffer)
-    {
-        Y = screenHeight - buffer;
-    }
-
-    public bool IsRocketOnGround(Vector2 rocketPosition, float rocketHeight)
-    {
-        return rocketPosition.Y + rocketHeight / 2f >= Y;
-    }
+    public float Y { get; } = screenHeight - buffer;
 }
