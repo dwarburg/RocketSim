@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace RocketSim;
 
-public class Game1 : Game
+public class RocketSimGame : Game
 {
     private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
     private readonly GraphicsDeviceManager _graphics;
@@ -21,7 +21,7 @@ public class Game1 : Game
     private Texture2D _groundTexture;
     private Texture2D _rocketTexture;
 
-    public Game1()
+    public RocketSimGame()
     {
         _graphics = new GraphicsDeviceManager(this);
         _graphics.IsFullScreen = true;
