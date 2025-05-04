@@ -12,17 +12,13 @@ namespace RocketSim;
 public class Game1 : Game
 {
     private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
-    private const float EarthMass = 5.972e24f; // in kg
     private readonly GraphicsDeviceManager _graphics;
-    private Ground _ground;
 
-    private Rocket _rocket;
+    private Planet _planet;
+    private RocketCurrentState _rocketCurrentState;
     private SpriteBatch _spriteBatch;
     private SpriteFont _font;
     private Texture2D _groundTexture;
-
-    private Vector2 _planetCenter;
-
     private Texture2D _rocketTexture;
 
     public Game1()
@@ -39,20 +35,21 @@ public class Game1 : Game
         _graphics.PreferredBackBufferHeight = 1080;
         _graphics.ApplyChanges();
 
-        const int earthRadius = 6371000; // in meters
-        _planetCenter = new Vector2(400, -1 * earthRadius);
+        // Initialize the planet
+        const float earthMass = 5.972e24f; // in kg
+        const float earthRadius = 6371000; // in meters
+        var planetCenter = new Vector2(400, -1 * earthRadius);
+        _planet = new Planet(earthMass, earthRadius, planetCenter, _graphics.PreferredBackBufferHeight, 50);
 
-        _ground = new Ground(_graphics.PreferredBackBufferHeight, 50);
-
-        var initialRocketPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, _ground.Y);
-
-        var rocketProperties = new RocketProperties(
+        // Initialize the rocket
+        var initialRocketPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, _planet.GroundY);
+        var rocketProperties = new RocketInitialProperties(
             20000f,
             100f,
             20f,
             1000f
         );
-        _rocket = new Rocket(initialRocketPosition, rocketProperties);
+        _rocketCurrentState = new RocketCurrentState(initialRocketPosition, rocketProperties);
 
         base.Initialize();
     }
@@ -62,7 +59,7 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _rocketTexture = Content.Load<Texture2D>("rocket");
         _groundTexture = new Texture2D(GraphicsDevice, 1, 1);
-        _groundTexture.SetData([Color.Green]);
+        _groundTexture.SetData(new[] { Color.Green });
 
         try
         {
@@ -80,8 +77,13 @@ public class Game1 : Game
         if (keyboardState.IsKeyDown(Keys.Escape))
             Exit();
 
-        _rocket.Update(gameTime, _planetCenter, GravityConstant, EarthMass, keyboardState);
-        _rocket.HandleGroundCollision(_ground.Y, _rocketTexture?.Height ?? 64);
+        _rocketCurrentState.Update(gameTime, _planet.Center, GravityConstant, _planet.Mass, keyboardState);
+
+        // Check for ground collision using the Planet class
+        if (_planet.IsRocketOnGround(_rocketCurrentState.Position, _rocketTexture?.Height ?? 64))
+        {
+            _rocketCurrentState.HandleGroundCollision(_planet.GroundY, _rocketTexture?.Height ?? 64);
+        }
 
         base.Update(gameTime);
     }
@@ -93,21 +95,21 @@ public class Game1 : Game
 
         _spriteBatch.Draw(
             _rocketTexture,
-            _rocket.Position,
+            _rocketCurrentState.Position,
             null,
             Color.White,
-            _rocket.Rotation,
+            _rocketCurrentState.Rotation,
             new Vector2(_rocketTexture.Width / 2f, _rocketTexture.Height / 2f),
             1f,
             SpriteEffects.None,
             0f
         );
 
-        _spriteBatch.Draw(_groundTexture, new Rectangle(0, (int)_ground.Y, _graphics.PreferredBackBufferWidth, 5),
+        _spriteBatch.Draw(_groundTexture, new Rectangle(0, (int)_planet.GroundY, _graphics.PreferredBackBufferWidth, 5),
             Color.Green);
 
         if (_font != null)
-            _spriteBatch.DrawString(_font, $"Fuel: {_rocket.Fuel:F1}", new Vector2(10, 10), Color.White);
+            _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 10), Color.White);
 
         _spriteBatch.End();
         base.Draw(gameTime);

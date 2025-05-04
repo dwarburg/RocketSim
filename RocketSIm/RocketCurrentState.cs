@@ -4,13 +4,13 @@ using Microsoft.Xna.Framework.Input;
 
 namespace RocketSim;
 
-public class Rocket(Vector2 initialPosition, RocketProperties properties)
+public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties initialProperties)
 {
     public Vector2 Position { get; private set; } = initialPosition;
     public Vector2 Velocity { get; private set; } = Vector2.Zero;
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
-    public float Fuel => properties.Fuel; // Expose Fuel as a read-only property
+    public float Fuel => initialProperties.Fuel; // Expose Fuel as a read-only property
 
     public void Update(GameTime gameTime, Vector2 planetCenter, float gravityConstant, float earthMass,
         KeyboardState keyboardState)
@@ -27,17 +27,17 @@ public class Rocket(Vector2 initialPosition, RocketProperties properties)
         var directionToPlanet = planetCenter - Position;
         var distance = directionToPlanet.Length();
         directionToPlanet.Normalize();
-        var gravityForce = -gravityConstant * earthMass * properties.RocketMass / (distance * distance);
+        var gravityForce = -gravityConstant * earthMass * initialProperties.RocketMass / (distance * distance);
         Acceleration = directionToPlanet * gravityForce;
 
         // Handle thrust
-        if (keyboardState.IsKeyDown(Keys.Space) && properties.Fuel > 0)
+        if (keyboardState.IsKeyDown(Keys.Space) && initialProperties.Fuel > 0)
         {
             var thrust = new Vector2((float)Math.Sin(Rotation), -(float)Math.Cos(Rotation)) *
-                         properties.ThrustPower;
+                         initialProperties.ThrustPower;
             Acceleration += thrust;
-            properties.Fuel -= properties.FuelBurnRate * dt;
-            if (properties.Fuel < 0) properties.Fuel = 0;
+            initialProperties.Fuel -= initialProperties.FuelBurnRate * dt;
+            if (initialProperties.Fuel < 0) initialProperties.Fuel = 0;
         }
 
         // Update velocity and position
