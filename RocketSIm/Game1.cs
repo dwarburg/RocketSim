@@ -3,6 +3,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 
+//TO DO - Change Ground surface to use a circle based on the planet radius instead of 50 pixels from the bottom of the screen
+//TO DO - make frame stay centered on rocket
+//TO DO - seperate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
+//TO DO - add menu screen where rocket properties can be changed
+
 namespace RocketSim
 {
     public class Game1 : Game
@@ -10,35 +15,20 @@ namespace RocketSim
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D rocketTexture;
-        Texture2D groundTexture;
-        SpriteFont font;
+        private Texture2D rocketTexture;
+        private Texture2D groundTexture;
+        private SpriteFont font;
 
-        Vector2 rocketPosition;
-        Vector2 rocketVelocity;
-        Vector2 rocketAcceleration;
+        private Rocket _rocket;
+        private Ground _ground;
 
-        float gravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
-        Vector2 planetCenter;
-
-        private RocketProperties _rocketProperties;
-
-        //float thrustPower = 20000f; //in Newtons (which are kg*m/s^2)
-        float rocketRotation = 0f;
-        float rotationSpeed = MathHelper.ToRadians(90f);
-
-        //float fuel = 100f;
-        //float fuelBurnRate = 20f;
-
-        float groundY;
-
-        //float rocketMass = 1000f; // in kg
-        float earthMass = 5.972e24f; // in kg
+        private Vector2 planetCenter;
+        private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
+        private const float EarthMass = 5.972e24f; // in kg
 
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
-            // Set full screen mode
             _graphics.IsFullScreen = true;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -53,22 +43,16 @@ namespace RocketSim
             int earthRadius = 6371000; // in meters
             planetCenter = new Vector2(400, -1 * earthRadius);
 
-            int groundBuffer = 50; // 50 pixels above the bottom of the screen
-            groundY = _graphics.PreferredBackBufferHeight - groundBuffer;
+            _ground = new Ground(_graphics.PreferredBackBufferHeight, 50);
 
-            // Set the initial state vectors of the rocket
-            int middleOfScreen = _graphics.PreferredBackBufferWidth / 2;
-            rocketPosition = new Vector2(middleOfScreen, groundY);
-            rocketVelocity = new Vector2(0, 0);
-            rocketAcceleration = Vector2.Zero;
-
-            // Initialize RocketProperties
-            _rocketProperties = new RocketProperties(
-                thrustPower: 20000f, // in Newtons
-                fuel: 100f, // in units
-                fuelBurnRate: 20f, // in units per second
-                rocketMass: 1000f // in kilograms
+            Vector2 initialRocketPosition = new Vector2(_graphics.PreferredBackBufferWidth / 2, _ground.Y);
+            var rocketProperties = new RocketProperties(
+                thrustPower: 20000f,
+                fuel: 100f,
+                fuelBurnRate: 20f,
+                rocketMass: 1000f
             );
+            _rocket = new Rocket(initialRocketPosition, rocketProperties);
 
             base.Initialize();
         }
@@ -85,44 +69,12 @@ namespace RocketSim
 
         protected override void Update(GameTime gameTime)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var keyboardState = Keyboard.GetState();
-
             if (keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (keyboardState.IsKeyDown(Keys.Left))
-                rocketRotation -= rotationSpeed * dt;
-            if (keyboardState.IsKeyDown(Keys.Right))
-                rocketRotation += rotationSpeed * dt;
-
-            Vector2 directionToPlanet = planetCenter - rocketPosition;
-            float distance = directionToPlanet.Length();
-            directionToPlanet.Normalize();
-            float gravityForce = -gravityConstant * earthMass * _rocketProperties.RocketMass / (distance * distance);
-
-            rocketAcceleration = directionToPlanet * gravityForce;
-
-            if (keyboardState.IsKeyDown(Keys.Space) && _rocketProperties.Fuel > 0)
-            {
-                Vector2 thrust = new Vector2((float)Math.Sin(rocketRotation), -(float)Math.Cos(rocketRotation)) * _rocketProperties.ThrustPower;
-                rocketAcceleration += thrust;
-                _rocketProperties.Fuel -= _rocketProperties.FuelBurnRate * dt;
-                if (_rocketProperties.Fuel < 0) _rocketProperties.Fuel = 0;
-            }
-
-            rocketVelocity += rocketAcceleration * dt;
-            rocketPosition += rocketVelocity * dt;
-
-            float rocketHeight = rocketTexture?.Height ?? 64;
-            
-            //set velocity to zero when rocket hits the ground
-            if (rocketPosition.Y + rocketHeight / 2f >= groundY)
-            {
-                rocketPosition.Y = groundY - rocketHeight / 2f;
-                rocketVelocity = Vector2.Zero;
-                rocketAcceleration = Vector2.Zero;
-            }
+            _rocket.Update(gameTime, planetCenter, GravityConstant, EarthMass, keyboardState);
+            _rocket.HandleGroundCollision(_ground.Y, rocketTexture?.Height ?? 64);
 
             base.Update(gameTime);
         }
@@ -131,19 +83,24 @@ namespace RocketSim
         {
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin();
+
             _spriteBatch.Draw(
                 rocketTexture,
-                rocketPosition,
+                _rocket.Position,
                 null,
                 Color.White,
-                rocketRotation,
+                _rocket.Rotation,
                 new Vector2(rocketTexture.Width / 2f, rocketTexture.Height / 2f),
                 1f,
                 SpriteEffects.None,
-                0f);
-            _spriteBatch.Draw(groundTexture, new Rectangle(0, (int)groundY, _graphics.PreferredBackBufferWidth, 5), Color.Green);
+                0f
+            );
+
+            _spriteBatch.Draw(groundTexture, new Rectangle(0, (int)_ground.Y, _graphics.PreferredBackBufferWidth, 5), Color.Green);
+
             if (font != null)
-                _spriteBatch.DrawString(font, $"Fuel: {_rocketProperties.Fuel:F1}", new Vector2(10, 10), Color.White);
+                _spriteBatch.DrawString(font, $"Fuel: {_rocket.Fuel:F1}", new Vector2(10, 10), Color.White);
+
             _spriteBatch.End();
             base.Draw(gameTime);
         }
