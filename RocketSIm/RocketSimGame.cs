@@ -78,9 +78,9 @@ public class RocketSimGame : Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(); 
         
-        // If the rocket is within 540 pixels of the surface, create the texture for the visible portion of the planet
+        // If the rocket is within n pixels of the surface
         var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-        if (distanceToSurface <= 540)
+        if (distanceToSurface <= 960)
         {
             //draw green rectangle that takes up the bottom half of the screen
             var planetTexture = new Texture2D(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
@@ -91,8 +91,17 @@ public class RocketSimGame : Game
             }
             planetTexture.SetData(colorData);
             var planetRectangle = new Rectangle(0, _graphics.PreferredBackBufferHeight / 2, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight / 2);
-            _spriteBatch.Draw(planetTexture, planetRectangle, Color.White);
 
+            _spriteBatch.Draw(
+                planetTexture,
+                rocketWindowPosition,
+                planetRectangle, 
+                Color.White,
+                _rocketCurrentState.Rotation,
+                new Vector2(_rocketTexture.Width / 2f, _rocketTexture.Height / 2f),
+                1f,
+                SpriteEffects.None,
+                0f);
 
         }
 
