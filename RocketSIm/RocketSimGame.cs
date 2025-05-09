@@ -82,7 +82,7 @@ public class RocketSimGame : Game
         var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
         if (distanceToSurface <= 540)
         {
-            //draw green rectangle that takes up the bottom half of the screen
+            //draw green rectangle the width of screen that has its top at the planet surface
             var planetTexture = new Texture2D(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
             var colorData = new Color[_graphics.PreferredBackBufferWidth * _graphics.PreferredBackBufferHeight];
             for (int i = 0; i < colorData.Length; i++)
@@ -90,8 +90,9 @@ public class RocketSimGame : Game
                 colorData[i] = Color.Green;
             }
             planetTexture.SetData(colorData);
-            var planetRectangle = new Rectangle(0, _graphics.PreferredBackBufferHeight / 2, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight / 2);
-            _spriteBatch.Draw(planetTexture, planetRectangle, Color.White);
+            var planetSurfaceHeight = _graphics.PreferredBackBufferHeight - (540 - distanceToSurface);
+            var planetSurfaceRectangle = new Rectangle(0, (int)planetSurfaceHeight, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight - (int)planetSurfaceHeight);
+            _spriteBatch.Draw(planetTexture, planetSurfaceRectangle, Color.Green);
 
 
         }
