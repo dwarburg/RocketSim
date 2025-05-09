@@ -1,26 +1,17 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace RocketSim;
 
-public class Planet
+public class Planet(float mass, float radius, Vector2 center, float screenHeight, float groundBuffer)
 {
-    public float Mass { get; }
-    public float Radius { get; }
-    public Vector2 Center { get; }
-    public float GroundY { get; }
+    public const float DefaultMass = 5.972e24f; // in kg
+    public const float DefaultRadius = 6371000f; // in meters
 
-    public Planet(float mass, float radius, Vector2 center, float screenHeight, float groundBuffer)
-    {
-        Mass = mass;
-        Radius = radius;
-        Center = center;
+    public float Mass { get; } = mass;
+    public float Radius { get; } = radius;
+    public Vector2 Center { get; } = center;
+    
+    private Texture2D _planetTexture;
 
-        // Calculate ground height based on the screen height and buffer
-        GroundY = screenHeight - groundBuffer;
-    }
-
-    public bool IsRocketOnGround(Vector2 rocketPosition, float rocketHeight)
-    {
-        return rocketPosition.Y + rocketHeight / 2f >= GroundY;
-    }
 }

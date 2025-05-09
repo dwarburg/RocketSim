@@ -1,9 +1,22 @@
 ﻿namespace RocketSim;
 
-public class RocketInitialProperties(float thrustPower, float fuel, float fuelBurnRate, float rocketMass)
+public class RocketInitialProperties
 {
-    public float ThrustPower { get; set; } = thrustPower; // in Newtons
-    public float Fuel { get; set; } = fuel; // in units
-    public float FuelBurnRate { get; set; } = fuelBurnRate; // in units per second
-    public float RocketMass { get; set; } = rocketMass; // in kilograms
+    public float ThrustPower { get; set; }
+    public float Fuel { get; set; }
+    public float FuelBurnRate { get; set; }
+    public float RocketMass { get; set; }
+
+    // Constructor with default values
+    public RocketInitialProperties(
+        float thrustPower = 20000f,
+        float fuel = 100f,
+        float fuelBurnRate = 20f,
+        float rocketMass = 1000f)
+    {
+        ThrustPower = thrustPower;
+        Fuel = fuel;
+        FuelBurnRate = fuelBurnRate;
+        RocketMass = rocketMass;
+    }
 }

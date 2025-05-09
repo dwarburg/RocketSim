@@ -18,7 +18,6 @@ public class RocketSimGame : Game
     private RocketCurrentState _rocketCurrentState;
     private SpriteBatch _spriteBatch;
     private SpriteFont _font;
-    private Texture2D _groundTexture;
     private Texture2D _rocketTexture;
 
     public RocketSimGame()
@@ -36,20 +35,13 @@ public class RocketSimGame : Game
         _graphics.ApplyChanges();
 
         // Initialize the planet
-        const float earthMass = 5.972e24f; // in kg
-        const float earthRadius = 6371000; // in meters
-        var planetCenter = new Vector2(400, -1 * earthRadius);
-        _planet = new Planet(earthMass, earthRadius, planetCenter, _graphics.PreferredBackBufferHeight, 50);
+        var planetCenter = new Vector2(0, -1 * Planet.DefaultRadius);
+        _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius, planetCenter, _graphics.PreferredBackBufferHeight, 50);
 
         // Initialize the rocket
-        var initialRocketPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, _planet.GroundY);
-        var rocketProperties = new RocketInitialProperties(
-            20000f,
-            100f,
-            20f,
-            1000f
-        );
-        _rocketCurrentState = new RocketCurrentState(initialRocketPosition, rocketProperties);
+        var rocketInitialPhysicsPosition = new Vector2(0, 0);
+        var rocketProperties = new RocketInitialProperties();
+        _rocketCurrentState = new RocketCurrentState(rocketInitialPhysicsPosition, rocketProperties);
 
         base.Initialize();
     }
@@ -58,8 +50,6 @@ public class RocketSimGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _rocketTexture = Content.Load<Texture2D>("rocket");
-        _groundTexture = new Texture2D(GraphicsDevice, 1, 1);
-        _groundTexture.SetData(new[] { Color.Green });
 
         try
         {
@@ -77,12 +67,30 @@ public class RocketSimGame : Game
         if (keyboardState.IsKeyDown(Keys.Escape))
             Exit();
 
+        // Update the rocket's state
         _rocketCurrentState.Update(gameTime, _planet.Center, GravityConstant, _planet.Mass, keyboardState);
 
-        // Check for ground collision using the Planet class
-        if (_planet.IsRocketOnGround(_rocketCurrentState.Position, _rocketTexture?.Height ?? 64))
+        // New ground collision logic
+        if (_rocketCurrentState.IsOnGround(_planet, _rocketTexture?.Height ?? 64))
         {
-            _rocketCurrentState.HandleGroundCollision(_planet.GroundY, _rocketTexture?.Height ?? 64);
+            _rocketCurrentState.HandleGroundCollision(0f, _rocketTexture?.Height ?? 64);
+            return; // Skip further updates if the rocket is on the ground
+        }
+
+        // Calculate the rocket's distance from the planet's surface
+        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+
+        // If the rocket is within 540 meters of the surface, create the texture for the visible portion
+        if (distanceToSurface <= 540)
+        {
+            var visibleWindow = new Rectangle(
+                (int)(_rocketCurrentState.Position.X - 960), // Centered horizontally
+                (int)(_rocketCurrentState.Position.Y - 540), // Centered vertically
+                1920,
+                1080
+            );
+
+            //_planet.CreateTexture(GraphicsDevice, visibleWindow);
         }
 
         base.Update(gameTime);
@@ -90,12 +98,17 @@ public class RocketSimGame : Game
 
     protected override void Draw(GameTime gameTime)
     {
+        var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
+
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin();
 
+        // Draw the planet
+        //_planet.Draw(_spriteBatch);
+
         _spriteBatch.Draw(
             _rocketTexture,
-            _rocketCurrentState.Position,
+            rocketWindowPosition,
             null,
             Color.White,
             _rocketCurrentState.Rotation,
@@ -105,11 +118,28 @@ public class RocketSimGame : Game
             0f
         );
 
-        _spriteBatch.Draw(_groundTexture, new Rectangle(0, (int)_planet.GroundY, _graphics.PreferredBackBufferWidth, 5),
-            Color.Green);
-
         if (_font != null)
-            _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 10), Color.White);
+        {
+            // Display the rocket's position
+            var rocketPositionText = $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
+            _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 10), Color.White);
+
+            // Calculate and display the distance to the planet's center
+            var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
+            var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
+            _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
+
+            // Display the fuel below the position
+            _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 50), Color.White);
+
+            // Display the rocket's velocity
+            var rocketVelocityText = $"Velocity: X={_rocketCurrentState.Velocity.X:F1}, Y={_rocketCurrentState.Velocity.Y:F1}";
+            _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 70), Color.White);
+
+            // Display the rocket's acceleration
+            var rocketAccelerationText = $"Acceleration: X={_rocketCurrentState.Acceleration.X:F1}, Y={_rocketCurrentState.Acceleration.Y:F1}";
+            _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 90), Color.White);
+        }
 
         _spriteBatch.End();
         base.Draw(gameTime);

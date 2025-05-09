@@ -27,7 +27,8 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         var directionToPlanet = planetCenter - Position;
         var distance = directionToPlanet.Length();
         directionToPlanet.Normalize();
-        var gravityForce = -gravityConstant * earthMass * initialProperties.RocketMass / (distance * distance);
+        //var gravityForce = gravityConstant * earthMass * initialProperties.RocketMass / (distance * distance);
+        var gravityForce = 0f;
         Acceleration = directionToPlanet * gravityForce;
 
         // Handle thrust
@@ -44,6 +45,11 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Velocity += Acceleration * dt;
         Position += Velocity * dt;
     }
+    public bool IsOnGround(Planet planet, float rocketHeight)
+    {
+        var distanceFromCenter = Vector2.Distance(Position, planet.Center);
+        return distanceFromCenter <= planet.Radius + (rocketHeight / 2f);
+    }
 
     public void HandleGroundCollision(float groundY, float rocketHeight)
     {
@@ -52,4 +58,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Velocity = Vector2.Zero;
         Acceleration = Vector2.Zero;
     }
+
+
+
 }
