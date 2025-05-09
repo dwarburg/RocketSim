@@ -11,7 +11,6 @@ namespace RocketSim;
 
 public class RocketSimGame : Game
 {
-    private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
     private readonly GraphicsDeviceManager _graphics;
 
     private Planet _planet;
@@ -25,7 +24,6 @@ public class RocketSimGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.IsFullScreen = true;
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
     }
 
     protected override void Initialize()
@@ -67,31 +65,8 @@ public class RocketSimGame : Game
         if (keyboardState.IsKeyDown(Keys.Escape))
             Exit();
 
-        // Update the rocket's state
-        _rocketCurrentState.Update(gameTime, _planet.Center, GravityConstant, _planet.Mass, keyboardState);
-
-        // New ground collision logic
-        if (_rocketCurrentState.IsOnGround(_planet, _rocketTexture?.Height ?? 64))
-        {
-            _rocketCurrentState.HandleGroundCollision(0f, _rocketTexture?.Height ?? 64);
-            return; // Skip further updates if the rocket is on the ground
-        }
-
-        // Calculate the rocket's distance from the planet's surface
-        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-
-        // If the rocket is within 540 meters of the surface, create the texture for the visible portion
-        if (distanceToSurface <= 540)
-        {
-            var visibleWindow = new Rectangle(
-                (int)(_rocketCurrentState.Position.X - 960), // Centered horizontally
-                (int)(_rocketCurrentState.Position.Y - 540), // Centered vertically
-                1920,
-                1080
-            );
-
-            //_planet.CreateTexture(GraphicsDevice, visibleWindow);
-        }
+        // Update the rocket's state, including ground collision logic
+        _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet, _rocketTexture?.Height ?? 64);
 
         base.Update(gameTime);
     }
@@ -103,9 +78,7 @@ public class RocketSimGame : Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin();
 
-        // Draw the planet
-        //_planet.Draw(_spriteBatch);
-
+        // Draw the rocket
         _spriteBatch.Draw(
             _rocketTexture,
             rocketWindowPosition,
@@ -118,6 +91,21 @@ public class RocketSimGame : Game
             0f
         );
 
+        // If the rocket is within 540 meters of the surface, create the texture for the visible portion of the planet
+        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+        if (distanceToSurface <= 540)
+        {
+            var visibleWindow = new Rectangle(
+                (int)(_rocketCurrentState.Position.X - 960), // Centered horizontally
+                (int)(_rocketCurrentState.Position.Y - 540), // Centered vertically
+                1920,
+                1080
+            );
+
+            //_planet.CreateTexture(GraphicsDevice, visibleWindow);
+        }
+
+        // Display Text Values
         if (_font != null)
         {
             // Display the rocket's position
