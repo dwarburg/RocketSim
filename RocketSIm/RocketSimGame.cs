@@ -76,7 +76,25 @@ public class RocketSimGame : Game
         var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
 
         GraphicsDevice.Clear(Color.Black);
-        _spriteBatch.Begin();
+        _spriteBatch.Begin(); 
+        
+        // If the rocket is within 540 pixels of the surface, create the texture for the visible portion of the planet
+        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+        if (distanceToSurface <= 540)
+        {
+            //draw green rectangle that takes up the bottom half of the screen
+            var planetTexture = new Texture2D(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+            var colorData = new Color[_graphics.PreferredBackBufferWidth * _graphics.PreferredBackBufferHeight];
+            for (int i = 0; i < colorData.Length; i++)
+            {
+                colorData[i] = Color.Green;
+            }
+            planetTexture.SetData(colorData);
+            var planetRectangle = new Rectangle(0, _graphics.PreferredBackBufferHeight / 2, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight / 2);
+            _spriteBatch.Draw(planetTexture, planetRectangle, Color.White);
+
+
+        }
 
         // Draw the rocket
         _spriteBatch.Draw(
@@ -91,19 +109,7 @@ public class RocketSimGame : Game
             0f
         );
 
-        // If the rocket is within 540 meters of the surface, create the texture for the visible portion of the planet
-        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-        if (distanceToSurface <= 540)
-        {
-            var visibleWindow = new Rectangle(
-                (int)(_rocketCurrentState.Position.X - 960), // Centered horizontally
-                (int)(_rocketCurrentState.Position.Y - 540), // Centered vertically
-                1920,
-                1080
-            );
-
-            //_planet.CreateTexture(GraphicsDevice, visibleWindow);
-        }
+        
 
         // Display Text Values
         if (_font != null)
