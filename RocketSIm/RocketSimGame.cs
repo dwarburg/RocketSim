@@ -1,9 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
-//TO DO - Change Ground surface to use a circle based on the planet radius instead of 50 pixels from the bottom of the screen
-//TO DO - make frame stay centered on rocket
+//TO DO - resolve timing issues on thrust - can the update happen every fraction of a second?
+//TO DO - resolve overlap issue on ground collision - rocket should not be able to overlap the planet
 //TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
 //TO DO - add menu screen where rocket properties can be changed
 
@@ -76,41 +77,20 @@ public class RocketSimGame : Game
         var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
 
         GraphicsDevice.Clear(Color.Black);
+
+        // Begin a drawing session for sprite batch class that draws graphics in MonoGame framework
         _spriteBatch.Begin(); 
         
-        // If the rocket is within 540 pixels of the surface, create the texture for the visible portion of the planet
         var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
         if (distanceToSurface <= 540)
         {
             //draw green rectangle the width of screen that has its top at the planet surface
-            var planetTexture = new Texture2D(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
-            var colorData = new Color[_graphics.PreferredBackBufferWidth * _graphics.PreferredBackBufferHeight];
-            for (int i = 0; i < colorData.Length; i++)
-            {
-                colorData[i] = Color.Green;
-            }
-            planetTexture.SetData(colorData);
-            var planetSurfaceHeight = _graphics.PreferredBackBufferHeight - (540 - distanceToSurface);
-            var planetSurfaceRectangle = new Rectangle(0, (int)planetSurfaceHeight, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight - (int)planetSurfaceHeight);
-            _spriteBatch.Draw(planetTexture, planetSurfaceRectangle, Color.Green);
-
-
+            _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
         }
 
         // Draw the rocket
-        _spriteBatch.Draw(
-            _rocketTexture,
-            rocketWindowPosition,
-            null,
-            Color.White,
-            _rocketCurrentState.Rotation,
-            new Vector2(_rocketTexture.Width / 2f, _rocketTexture.Height / 2f),
-            1f,
-            SpriteEffects.None,
-            0f
-        );
+        _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
 
-        
 
         // Display Text Values
         if (_font != null)

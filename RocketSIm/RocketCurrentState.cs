@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace RocketSim;
@@ -26,9 +27,13 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic
-        if (IsOnGround(planet, rocketHeight))
+        if (IsOnOrUnderGround(planet))
         {
-            HandleGroundCollision(0f, rocketHeight);
+            HandleGroundCollision();
+            if (IsUnderGround(planet))
+            {
+                HandleUnderGround();
+            }
         }
         else
         {
@@ -56,15 +61,55 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Position += Velocity * dt;
     }
 
-    public bool IsOnGround(Planet planet, float rocketHeight)
+    public bool IsOnOrUnderGround(Planet planet)
     {
+        //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
         var distanceFromCenter = Vector2.Distance(Position, planet.Center);
-        return distanceFromCenter <= planet.Radius + (rocketHeight / 2f);
+        return distanceFromCenter <= planet.Radius;
     }
 
-    public void HandleGroundCollision(float groundY, float rocketHeight)
+    public bool IsUnderGround(Planet planet)
+    {
+        //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
+        var distanceFromCenter = Vector2.Distance(Position, planet.Center);
+        return distanceFromCenter < planet.Radius;
+    }
+
+    public void HandleGroundCollision()
     {
         Velocity = Vector2.Zero;
         Acceleration = Vector2.Zero;
+
+    }
+
+    public void HandleUnderGround()
+    {
+        // move from below ground to on ground due to rounding and floating point errors
+        // uses rocket starting Y position for ground level so that origin can be changed to planet center for other planets
+        Position = new Vector2(Position.X, initialPosition.Y);
+    }
+
+    public void ResetToInitialPosition(Vector2 initialPosition)
+    {
+        Position = initialPosition;
+        Velocity = Vector2.Zero;
+        Acceleration = Vector2.Zero;
+        Rotation = 0f;
+    }
+
+    public void Draw(SpriteBatch spriteBatch, Texture2D rocketTexture, Vector2 rocketWindowPosition){
+
+        // Draw the rocket
+        spriteBatch.Draw(
+            rocketTexture,
+            rocketWindowPosition,
+            null,
+            Color.White,
+            Rotation,
+            new Vector2(rocketTexture.Width / 2f, rocketTexture.Height / 2f),
+            1f,
+            SpriteEffects.None,
+            0f
+        );
     }
 }
