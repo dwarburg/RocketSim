@@ -3,10 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 
-//TO DO - resolve timing issues on thrust - can the update happen every fraction of a second?
-//TO DO - resolve overlap issue on ground collision - rocket should not be able to overlap the planet
-//TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
 //TO DO - add menu screen where rocket properties can be changed
+//TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
+
 
 namespace RocketSim;
 
@@ -19,6 +18,7 @@ public class RocketSimGame : Game
     private SpriteBatch _spriteBatch;
     private SpriteFont _font;
     private Texture2D _rocketTexture;
+    private MenuScreen _menuScreen;
 
     public RocketSimGame()
     {
@@ -58,62 +58,94 @@ public class RocketSimGame : Game
         {
             _font = null;
         }
+
+        // Initialize the menu screen
+        _menuScreen = new MenuScreen(_font, GraphicsDevice, this);// Pass the Game instance
     }
 
     protected override void Update(GameTime gameTime)
     {
         var keyboardState = Keyboard.GetState();
-        if (keyboardState.IsKeyDown(Keys.Escape))
-            Exit();
 
-        // Update the rocket's state, including ground collision logic
-        _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet, _rocketTexture?.Height ?? 64);
+        // Toggle menu with the Escape key
+        if (keyboardState.IsKeyDown(Keys.Escape))
+        {
+            _menuScreen.ToggleMenu();
+        }
+
+        if (_menuScreen.IsMenuActive)
+        {
+            // Update the menu
+            _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0)); // Pass initial rocket position
+        }
+        else
+        {
+            // Exit game with X key
+            if (keyboardState.IsKeyDown(Keys.X))
+                Exit();
+
+            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet, _rocketTexture?.Height ?? 64);
+        }
 
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
-
         GraphicsDevice.Clear(Color.Black);
 
         // Begin a drawing session for sprite batch class that draws graphics in MonoGame framework
-        _spriteBatch.Begin(); 
-        
-        var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-        if (distanceToSurface <= 540)
+        _spriteBatch.Begin();
+
+        if (_menuScreen.IsMenuActive)
         {
-            //draw green rectangle the width of screen that has its top at the planet surface
-            _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+            // Draw the menu
+            _menuScreen.Draw(_spriteBatch);
         }
-
-        // Draw the rocket
-        _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
-
-
-        // Display Text Values
-        if (_font != null)
+        else
         {
-            // Display the rocket's position
-            var rocketPositionText = $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
-            _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 10), Color.White);
+            // Draw the game
+            var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
+            
+            var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+            if (distanceToSurface <= 540)
+            {
+                //draw green rectangle the width of screen that has its top at the planet surface
+                _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth,
+                    _graphics.PreferredBackBufferHeight);
+            }
 
-            // Calculate and display the distance to the planet's center
-            var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
-            var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
-            _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
+            // Draw the rocket
+            _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
 
-            // Display the fuel below the position
-            _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 50), Color.White);
 
-            // Display the rocket's velocity
-            var rocketVelocityText = $"Velocity: X={_rocketCurrentState.Velocity.X:F1}, Y={_rocketCurrentState.Velocity.Y:F1}";
-            _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 70), Color.White);
+            // Display Text Values
+            if (_font != null)
+            {
+                // Display the rocket's position
+                var rocketPositionText =
+                    $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
+                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 10), Color.White);
 
-            // Display the rocket's acceleration
-            var rocketAccelerationText = $"Acceleration: X={_rocketCurrentState.Acceleration.X:F1}, Y={_rocketCurrentState.Acceleration.Y:F1}";
-            _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 90), Color.White);
+                // Calculate and display the distance to the planet's center
+                var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
+                var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
+                _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
+
+                // Display the fuel below the position
+                _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 50),
+                    Color.White);
+
+                // Display the rocket's velocity
+                var rocketVelocityText =
+                    $"Velocity: X={_rocketCurrentState.Velocity.X:F1}, Y={_rocketCurrentState.Velocity.Y:F1}";
+                _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 70), Color.White);
+
+                // Display the rocket's acceleration
+                var rocketAccelerationText =
+                    $"Acceleration: X={_rocketCurrentState.Acceleration.X:F1}, Y={_rocketCurrentState.Acceleration.Y:F1}";
+                _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 90), Color.White);
+            }
         }
 
         _spriteBatch.End();

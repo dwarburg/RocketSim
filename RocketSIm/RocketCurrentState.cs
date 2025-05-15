@@ -42,7 +42,6 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             var distance = directionToPlanet.Length();
             directionToPlanet.Normalize();
             var gravityForce = (GravityConstant * earthMass * initialProperties.RocketMass) / (distance * distance);
-            //var gravityForce = 0f; 
             Acceleration = directionToPlanet * gravityForce;
         }
         
