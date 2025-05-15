@@ -15,6 +15,23 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
 
     private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
 
+    // Read-only access to initial properties
+    public RocketInitialProperties GetInitialProperties()
+    {
+        return new RocketInitialProperties(
+            initialProperties.ThrustPower,
+            initialProperties.Fuel,
+            initialProperties.FuelBurnRate,
+            initialProperties.RocketMass
+        );
+    }
+
+    // Controlled modification of initial properties
+    public void UpdateInitialProperties(Action<RocketInitialProperties> updateAction)
+    {
+        updateAction(initialProperties);
+    }
+
     public void Update(GameTime gameTime, Vector2 planetCenter,  float earthMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
     {
@@ -111,4 +128,5 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             0f
         );
     }
+
 }

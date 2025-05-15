@@ -19,6 +19,9 @@ public class RocketSimGame : Game
     private SpriteFont _font;
     private Texture2D _rocketTexture;
     private MenuScreen _menuScreen;
+    private double _escapeDebounceTime = 0; // Tracks the time since the last Escape key toggle
+    private const double EscapeDebounceDelay = 0.2; // Minimum delay (in seconds) between toggles
+
 
     public RocketSimGame()
     {
@@ -67,10 +70,14 @@ public class RocketSimGame : Game
     {
         var keyboardState = Keyboard.GetState();
 
-        // Toggle menu with the Escape key
-        if (keyboardState.IsKeyDown(Keys.Escape))
+        // Update the debounce timer (used to prevent menu flashing on and off)
+        _escapeDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
+
+        // Check if the Escape key is pressed and debounce timer has elapsed
+        if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
         {
             _menuScreen.ToggleMenu();
+            _escapeDebounceTime = EscapeDebounceDelay; // Reset the debounce timer
         }
 
         if (_menuScreen.IsMenuActive)
@@ -100,7 +107,7 @@ public class RocketSimGame : Game
         if (_menuScreen.IsMenuActive)
         {
             // Draw the menu
-            _menuScreen.Draw(_spriteBatch);
+            _menuScreen.Draw(_spriteBatch, _rocketCurrentState);
         }
         else
         {

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -8,11 +9,11 @@ public class MenuScreen
 {
     private SpriteFont _font;
     private Texture2D _buttonTexture;
-    private Rectangle _exitButtonRect;
-    private Rectangle _resetButtonRect;
-    private Rectangle _startButtonRect;
+    private Rectangle _exitButton, _resetButton, _startButton, _editPropertiesButton;
     private bool _isMenuActive;
     private Game _game; // Reference to the Game instance
+    private bool _isEditingProperties = false; // Tracks if the Edit Properties screen is active
+
 
     public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice, Game game)
     {
@@ -24,9 +25,10 @@ public class MenuScreen
         _buttonTexture.SetData(new[] { Color.White });
 
         // Define button positions and sizes
-        _exitButtonRect = new Rectangle(860, 400, 200, 50); // Centered on screen
-        _resetButtonRect = new Rectangle(860, 500, 200, 50); // Below the exit button
-        _startButtonRect = new Rectangle(860, 600, 200, 50); 
+        _exitButton = new Rectangle(860, 400, 200, 50); // Centered on screen
+        _resetButton = new Rectangle(860, 500, 200, 50); // Below the exit button
+        _startButton = new Rectangle(860, 600, 200, 50);
+        _editPropertiesButton = new Rectangle(860, 700, 200, 50); 
 
         _isMenuActive = true; // Start with the menu active
     }
@@ -40,48 +42,123 @@ public class MenuScreen
 
     public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition)
     {
-        if (!_isMenuActive) return;
+        if (!_isMenuActive && !_isEditingProperties) return;
 
         var mouseState = Mouse.GetState();
 
+        if (_isEditingProperties)
+        {
+            // Handle input for editing properties (e.g., sliders or buttons)
+            HandleEditPropertiesInput(rocketState);
+            return;
+        }
+
         // Check if the exit button is clicked
-        if (_exitButtonRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+        if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
             game.Exit();
         }
 
         // Check if the reset button is clicked
-        if (_resetButtonRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+        if (_resetButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
             rocketState.ResetToInitialPosition(initialRocketPosition);
         }
 
         // Check if the start button is clicked
-        if (_startButtonRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+        if (_startButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
             // Start the simulation
             _isMenuActive = false;
             game.IsMouseVisible = false; // Hide the mouse cursor
         }
+
+        // Check if the edit properties button is clicked
+        if (_editPropertiesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+        {
+            // Open the properties editing interface
+            _isEditingProperties = true;
+        }
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    private void HandleEditPropertiesInput(RocketCurrentState rocketState)
     {
-        if (!_isMenuActive) return;
+        var keyboardState = Keyboard.GetState();
+
+        // Example: Adjust ThrustPower using arrow keys
+        rocketState.UpdateInitialProperties(properties =>
+        {
+            if (keyboardState.IsKeyDown(Keys.Up))
+                properties.ThrustPower += 100f;
+            if (keyboardState.IsKeyDown(Keys.Down))
+                properties.ThrustPower -= 100f;
+        });
+
+        // Close the Edit Properties screen with the Escape key
+        if (keyboardState.IsKeyDown(Keys.Escape))
+        {
+            _isEditingProperties = false;
+        }
+    }
+
+
+
+    public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState)
+    {
+        if (!_isMenuActive && !_isEditingProperties) return;
+
+        if (_isEditingProperties)
+        {
+            // Draw the Edit Properties screen
+            DrawEditPropertiesScreen(spriteBatch, rocketState);
+            return;
+        }
+
 
         // Make the mouse cursor visible
         _game.IsMouseVisible = true;
 
         // Draw the exit button
-        spriteBatch.Draw(_buttonTexture, _exitButtonRect, Color.Red);
-        spriteBatch.DrawString(_font, "Exit", new Vector2(_exitButtonRect.X + 60, _exitButtonRect.Y + 15), Color.White);
+        spriteBatch.Draw(_buttonTexture, _exitButton, Color.Red);
+        spriteBatch.DrawString(_font, "Exit", new Vector2(_exitButton.X + 60, _exitButton.Y + 15), Color.White);
 
         // Draw the reset button
-        spriteBatch.Draw(_buttonTexture, _resetButtonRect, Color.Blue);
-        spriteBatch.DrawString(_font, "Reset Rocket", new Vector2(_resetButtonRect.X + 20, _resetButtonRect.Y + 15), Color.White);
+        spriteBatch.Draw(_buttonTexture, _resetButton, Color.Blue);
+        spriteBatch.DrawString(_font, "Reset Rocket", new Vector2(_resetButton.X + 20, _resetButton.Y + 15), Color.White);
 
         // Draw the start button
-        spriteBatch.Draw(_buttonTexture, _startButtonRect, Color.Green);
-        spriteBatch.DrawString(_font, "Start Simulation", new Vector2(_startButtonRect.X + 20, _startButtonRect.Y + 15), Color.White);
+        spriteBatch.Draw(_buttonTexture, _startButton, Color.Green);
+        spriteBatch.DrawString(_font, "Start Simulation", new Vector2(_startButton.X + 20, _startButton.Y + 15), Color.White);
+
+        // Draw the edit properties button
+        spriteBatch.Draw(_buttonTexture, _editPropertiesButton, Color.Yellow);
+        spriteBatch.DrawString(_font, "Edit Properties", new Vector2(_editPropertiesButton.X + 20, _editPropertiesButton.Y + 15), Color.Black);
+    }
+
+    private void DrawEditPropertiesScreen(SpriteBatch spriteBatch, RocketCurrentState rocketState)
+    {
+        // Draw a background for the Edit Properties screen
+        var backgroundRect = new Rectangle(400, 200, 1120, 600);
+        spriteBatch.Draw(_buttonTexture, backgroundRect, Color.Gray);
+
+        // Draw labels and values for each property
+        spriteBatch.DrawString(_font, "Edit Rocket Properties", new Vector2(600, 220), Color.White);
+
+        var yOffset = 300;
+        rocketState.GetInitialProperties().ThrustPower.ToString("F1");
+        spriteBatch.DrawString(_font, $"Thrust Power: {rocketState.GetInitialProperties().ThrustPower:F1}", new Vector2(450, yOffset), Color.White);
+        spriteBatch.DrawString(_font, "Use Up/Down to adjust", new Vector2(800, yOffset), Color.White);
+        yOffset += 50;
+
+        spriteBatch.DrawString(_font, $"Fuel: {rocketState.GetInitialProperties().Fuel:F1}", new Vector2(450, yOffset), Color.White);
+        yOffset += 50;
+
+        spriteBatch.DrawString(_font, $"Fuel Burn Rate: {rocketState.GetInitialProperties().FuelBurnRate:F1}", new Vector2(450, yOffset), Color.White);
+        yOffset += 50;
+
+        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketState.GetInitialProperties().RocketMass:F1}", new Vector2(450, yOffset), Color.White);
+        yOffset += 50;
+
+        spriteBatch.DrawString(_font, "Press Escape to return to the menu", new Vector2(600, 700), Color.White);
     }
 }
