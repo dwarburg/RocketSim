@@ -130,19 +130,19 @@ public class RocketSimGame : Game
             // Display Text Values
             if (_font != null)
             {
-                // Display the rocket's position
-                var rocketPositionText =
-                    $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
-                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 10), Color.White);
-
+                // Display the fuel 
+                _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 10),
+                    Color.White);
+                
                 // Calculate and display the distance to the planet's center
                 var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
                 var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
                 _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
-
-                // Display the fuel below the position
-                _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 50),
-                    Color.White);
+                
+                // Display the rocket's position
+                var rocketPositionText =
+                    $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
+                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 50), Color.White);
 
                 // Display the rocket's velocity
                 var rocketVelocityText =
