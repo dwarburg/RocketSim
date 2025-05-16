@@ -40,7 +40,7 @@ public class MenuScreen
         _isMenuActive = !_isMenuActive;
     }
 
-    public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition)
+    public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition, RocketInitialProperties rocketInitialProperties)
     {
         if (!_isMenuActive && !_isEditingProperties) return;
 
@@ -49,7 +49,7 @@ public class MenuScreen
         if (_isEditingProperties)
         {
             // Handle input for editing properties (e.g., sliders or buttons)
-            HandleEditPropertiesInput(rocketState);
+            HandleEditPropertiesInput(rocketInitialProperties);
             return;
         }
 
@@ -81,18 +81,17 @@ public class MenuScreen
         }
     }
 
-    private void HandleEditPropertiesInput(RocketCurrentState rocketState)
+    private void HandleEditPropertiesInput(RocketInitialProperties rocketInitialProperties)
     {
         var keyboardState = Keyboard.GetState();
 
         // Example: Adjust ThrustPower using arrow keys
-        rocketState.UpdateInitialProperties(properties =>
-        {
-            if (keyboardState.IsKeyDown(Keys.Up))
-                properties.ThrustPower += 100f;
-            if (keyboardState.IsKeyDown(Keys.Down))
-                properties.ThrustPower -= 100f;
-        });
+        
+        if (keyboardState.IsKeyDown(Keys.Up))
+            rocketInitialProperties.SetThrustPower(rocketInitialProperties.ThrustPower + 100f);
+        if (keyboardState.IsKeyDown(Keys.Down))
+            rocketInitialProperties.SetThrustPower(rocketInitialProperties.ThrustPower - 100f);
+
 
         // Close the Edit Properties screen with the Escape key
         if (keyboardState.IsKeyDown(Keys.Escape))
@@ -103,14 +102,14 @@ public class MenuScreen
 
 
 
-    public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState)
+    public void Draw(SpriteBatch spriteBatch, RocketInitialProperties rocketInitialProperties)
     {
         if (!_isMenuActive && !_isEditingProperties) return;
 
         if (_isEditingProperties)
         {
             // Draw the Edit Properties screen
-            DrawEditPropertiesScreen(spriteBatch, rocketState);
+            DrawEditPropertiesScreen(spriteBatch, rocketInitialProperties);
             return;
         }
 
@@ -135,7 +134,7 @@ public class MenuScreen
         spriteBatch.DrawString(_font, "Edit Properties", new Vector2(_editPropertiesButton.X + 20, _editPropertiesButton.Y + 15), Color.Black);
     }
 
-    private void DrawEditPropertiesScreen(SpriteBatch spriteBatch, RocketCurrentState rocketState)
+    private void DrawEditPropertiesScreen(SpriteBatch spriteBatch, RocketInitialProperties rocketInitialProperties)
     {
         // Draw a background for the Edit Properties screen
         var backgroundRect = new Rectangle(400, 200, 1120, 600);
@@ -145,18 +144,18 @@ public class MenuScreen
         spriteBatch.DrawString(_font, "Edit Rocket Properties", new Vector2(600, 220), Color.White);
 
         var yOffset = 300;
-        rocketState.GetInitialProperties().ThrustPower.ToString("F1");
-        spriteBatch.DrawString(_font, $"Thrust Power: {rocketState.GetInitialProperties().ThrustPower:F1}", new Vector2(450, yOffset), Color.White);
+        rocketInitialProperties.ThrustPower.ToString("F1");
+        spriteBatch.DrawString(_font, $"Thrust Power: {rocketInitialProperties.ThrustPower:F1}", new Vector2(450, yOffset), Color.White);
         spriteBatch.DrawString(_font, "Use Up/Down to adjust", new Vector2(800, yOffset), Color.White);
         yOffset += 50;
 
-        spriteBatch.DrawString(_font, $"Fuel: {rocketState.GetInitialProperties().Fuel:F1}", new Vector2(450, yOffset), Color.White);
+        spriteBatch.DrawString(_font, $"maxFuel: {rocketInitialProperties.MaxFuel:F1}", new Vector2(450, yOffset), Color.White);
         yOffset += 50;
 
-        spriteBatch.DrawString(_font, $"Fuel Burn Rate: {rocketState.GetInitialProperties().FuelBurnRate:F1}", new Vector2(450, yOffset), Color.White);
+        spriteBatch.DrawString(_font, $"maxFuel Burn Rate: {rocketInitialProperties.FuelBurnRate:F1}", new Vector2(450, yOffset), Color.White);
         yOffset += 50;
 
-        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketState.GetInitialProperties().RocketMass:F1}", new Vector2(450, yOffset), Color.White);
+        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketInitialProperties.RocketMass:F1}", new Vector2(450, yOffset), Color.White);
         yOffset += 50;
 
         spriteBatch.DrawString(_font, "Press Escape to return to the menu", new Vector2(600, 700), Color.White);

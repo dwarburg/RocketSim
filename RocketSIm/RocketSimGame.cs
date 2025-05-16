@@ -15,6 +15,7 @@ public class RocketSimGame : Game
 
     private Planet _planet;
     private RocketCurrentState _rocketCurrentState;
+    private RocketInitialProperties _rocketInitialProperties;
     private SpriteBatch _spriteBatch;
     private SpriteFont _font;
     private Texture2D _rocketTexture;
@@ -83,7 +84,7 @@ public class RocketSimGame : Game
         if (_menuScreen.IsMenuActive)
         {
             // Update the menu
-            _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0)); // Pass initial rocket position
+            _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0), _rocketInitialProperties); // Pass initial rocket position
         }
         else
         {
@@ -107,7 +108,7 @@ public class RocketSimGame : Game
         if (_menuScreen.IsMenuActive)
         {
             // Draw the menu
-            _menuScreen.Draw(_spriteBatch, _rocketCurrentState);
+            _menuScreen.Draw(_spriteBatch, _rocketInitialProperties);
         }
         else
         {

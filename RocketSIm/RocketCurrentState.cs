@@ -11,26 +11,9 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     public Vector2 Velocity { get; private set; } = Vector2.Zero;
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
-    public float Fuel => initialProperties.Fuel; 
+    public float Fuel { get; private set; } = initialProperties.MaxFuel;
 
     private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
-
-    // Read-only access to initial properties
-    public RocketInitialProperties GetInitialProperties()
-    {
-        return new RocketInitialProperties(
-            initialProperties.ThrustPower,
-            initialProperties.Fuel,
-            initialProperties.FuelBurnRate,
-            initialProperties.RocketMass
-        );
-    }
-
-    // Controlled modification of initial properties
-    public void UpdateInitialProperties(Action<RocketInitialProperties> updateAction)
-    {
-        updateAction(initialProperties);
-    }
 
     public void Update(GameTime gameTime, Vector2 planetCenter,  float earthMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
@@ -63,13 +46,13 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         }
         
         // Handle thrust
-        if (keyboardState.IsKeyDown(Keys.Space) && initialProperties.Fuel > 0)
+        if (keyboardState.IsKeyDown(Keys.Space) && Fuel > 0)
         {
             var thrust = new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation)) *
                          initialProperties.ThrustPower;
             Acceleration += thrust;
-            initialProperties.Fuel -= initialProperties.FuelBurnRate * dt;
-            if (initialProperties.Fuel < 0) initialProperties.Fuel = 0;
+            Fuel -= initialProperties.FuelBurnRate * dt;
+            if (Fuel < 0) Fuel = 0;
         }
 
         // Update velocity and position
@@ -111,6 +94,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Velocity = Vector2.Zero;
         Acceleration = Vector2.Zero;
         Rotation = 0f;
+        Fuel = initialProperties.MaxFuel; // Reset fuel to initial value
     }
 
     public void Draw(SpriteBatch spriteBatch, Texture2D rocketTexture, Vector2 rocketWindowPosition){

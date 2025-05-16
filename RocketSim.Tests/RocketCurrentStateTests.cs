@@ -38,7 +38,7 @@ public class RocketCurrentStateTests
         var rocket = new RocketCurrentState(initialPosition, GetDefaultProps());
 
         // Simulate movement
-        rocket.UpdateInitialProperties(p => p.Fuel = 50f);
+        rocket.UpdateInitialProperties(p => p.maxFuel = 50f);
         rocket.ResetToInitialPosition(new Vector2(5, 5));
 
         Assert.Equal(new Vector2(5, 5), rocket.Position);
@@ -99,11 +99,11 @@ public class RocketCurrentStateTests
     public void HandleGroundCollision_ResetsVelocityAndAcceleration()
     {
         var rocket = new RocketCurrentState(Vector2.Zero, GetDefaultProps());
-        rocket.UpdateInitialProperties(p => { p.Fuel = 50f; });
+        rocket.UpdateInitialProperties(p => { p.maxFuel = 50f; });
         rocket.ResetToInitialPosition(Vector2.Zero);
 
         // Simulate movement
-        rocket.UpdateInitialProperties(p => { p.Fuel = 50f; });
+        rocket.UpdateInitialProperties(p => { p.maxFuel = 50f; });
         rocket.Update(
             new GameTime(TimeSpan.Zero, TimeSpan.FromSeconds(1)),
             Vector2.Zero, 1, new KeyboardState(), GetDefaultPlanet(), 10f
@@ -120,7 +120,7 @@ public class RocketCurrentStateTests
     {
         var initialPosition = new Vector2(10, 20);
         var rocket = new RocketCurrentState(initialPosition, GetDefaultProps());
-        rocket.UpdateInitialProperties(p => { p.Fuel = 50f; });
+        rocket.UpdateInitialProperties(p => { p.maxFuel = 50f; });
 
         // Move rocket below ground
         rocket.ResetToInitialPosition(new Vector2(10, 5));
@@ -157,10 +157,10 @@ public class RocketCurrentStateTests
         var planet = GetDefaultPlanet();
         var gameTime = new GameTime(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
-        float initialFuel = props.Fuel;
+        float initialFuel = props.maxFuel;
         rocket.Update(gameTime, planet.Center, planet.Mass, state, planet, 10f);
 
         Assert.True(rocket.Acceleration.Length() > 0);
-        Assert.True(props.Fuel < initialFuel);
+        Assert.True(props.maxFuel < initialFuel);
     }
 }
