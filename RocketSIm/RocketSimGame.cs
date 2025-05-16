@@ -19,6 +19,7 @@ public class RocketSimGame : Game
     private SpriteBatch _spriteBatch;
     private SpriteFont _font;
     private Texture2D _rocketTexture;
+    private Texture2D _rocketTextureNoFire;
     private MenuScreen _menuScreen;
     private double _escapeDebounceTime = 0; // Tracks the time since the last Escape key toggle
     private const double EscapeDebounceDelay = 0.2; // Minimum delay (in seconds) between toggles
@@ -53,6 +54,7 @@ public class RocketSimGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _rocketTexture = Content.Load<Texture2D>("rocket");
+        _rocketTextureNoFire = Content.Load<Texture2D>("rocketNoFire");
 
         try
         {
@@ -124,8 +126,15 @@ public class RocketSimGame : Game
             }
 
             // Draw the rocket
-            _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
-
+            //if space key is pressed draw rocket, else draw rocket without fire
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
+            {
+                _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
+            }
+            else
+            {
+                _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
+            }
 
             // Display Text Values
             if (_font != null)
