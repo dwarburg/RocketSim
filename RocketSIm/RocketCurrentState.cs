@@ -12,9 +12,6 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
     public float Fuel { get; private set; } = initialProperties.MaxFuel;
-    public float Tolerance = 1e-3f; // Tolerance for floating point comparisons
-
-    private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
 
     public void Update(GameTime gameTime, Vector2 planetCenter,  float planetMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
@@ -28,23 +25,25 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic
-        if (IsOnGround(planet) || IsUnderGround(planet))
+        if (Physics.IsOnGround(planet, Position) || Physics.IsUnderGround(planet, Position))
         {
-            HandleGroundCollision();
+            //HandleGroundCollision
+            var collisionData = Physics.HandleGroundCollision(Position, new Vector2(0, rocketHeight));
+            Position = collisionData[0];
+            Velocity = collisionData[1];
+            Acceleration = collisionData[2];
+
         }
         else
         {
-            // Calculate gravity
-            ApplyGravity(planetCenter, planetMass);
-            var directionToPlanet = planetCenter - Position;
-            var distance = directionToPlanet.Length();
-            directionToPlanet.Normalize();
-            var gravityForce = (GravityConstant * planetMass * initialProperties.RocketMass) / (distance * distance);
-            Acceleration = directionToPlanet * gravityForce;
+            //Acceleration Due to Gravity
+            Acceleration = Vector2.Zero;
+            Acceleration = Physics.ApplyGravity(planet.Center, planet.Mass, Position, 
+                Acceleration, initialProperties.RocketMass);
         }
         
         
-        // Handle thrust
+        // Apply thrust whether rocket is on ground or not
         if (keyboardState.IsKeyDown(Keys.Space) && Fuel > 0)
         {
             var thrust = new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation)) *
@@ -59,49 +58,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Position += Velocity * dt;
     }
     
-    public void ApplyGravity(Vector2 planetCenter, float planetMass)
-    {
-        // Calculate the gravitational force
-        var directionToPlanet = planetCenter - Position;
-        var distance = directionToPlanet.Length();
-        directionToPlanet.Normalize();
-        var gravityForce = (GravityConstant * planetMass * initialProperties.RocketMass) / (distance * distance);
-        Acceleration = directionToPlanet * gravityForce;
-    }
-
-    public bool NearlyEqual(float a, float b)
-    {
-        return Math.Abs(a - b) < Tolerance;
-    }
-
-
-    public bool IsOnGround(Planet planet)
-    {
-        //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
-        var distanceFromCenter = Vector2.Distance(Position, planet.Center);
-        return NearlyEqual(distanceFromCenter, planet.Radius);
-    }
-
-    public bool IsUnderGround(Planet planet)
-    {
-        //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
-        var distanceFromCenter = Vector2.Distance(Position, planet.Center);
-        return distanceFromCenter < planet.Radius;
-    }
-
-    public void HandleGroundCollision()
-    {
-        Velocity = Vector2.Zero;
-        Acceleration = Vector2.Zero;
-        Position = new Vector2(Position.X, initialPosition.Y);
-    }
-
-    public void HandleUnderGround()
-    {
-        // move from below ground to on ground due to rounding and floating point errors
-        // uses rocket starting Y position for ground level so that origin can be changed to planet center for other planets
-        Position = new Vector2(Position.X, initialPosition.Y);
-    }
+    
 
     public void ResetToInitialPosition(Vector2 initialPosition)
     {
