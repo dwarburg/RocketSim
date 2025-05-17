@@ -119,10 +119,9 @@ public class RocketSimGame : Game
                 (float)_graphics.PreferredBackBufferHeight / 2);
 
             var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-            if (distanceToSurface <= 540)
-                //draw green rectangle the width of screen that has its top at the planet surface
-                _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight);
+
+            _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
+                _graphics.PreferredBackBufferHeight);
 
             // Draw the rocket
             //if space key is pressed draw rocket, else draw rocket without fire
