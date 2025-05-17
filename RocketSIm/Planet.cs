@@ -3,14 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace RocketSim;
 
-public class Planet(float mass, float radius, Vector2 center, float screenHeight, float groundBuffer)
+public class Planet(float mass, float radius)
 {
     public const float DefaultMass = 5.972e24f; // in kg
     public const float DefaultRadius = 6371000f; // in meters
 
     public float Mass { get; } = mass;
     public float Radius { get; } = radius;
-    public Vector2 Center { get; } = center;
+    public Vector2 Center { get; } = new Vector2(0, -1 * Planet.DefaultRadius);
     
     private Texture2D _planetTexture;
 
@@ -19,7 +19,7 @@ public class Planet(float mass, float radius, Vector2 center, float screenHeight
         // Create a green texture
         var planetTexture = new Texture2D(graphicsDevice, screenWidth, screenHeight);
         var colorData = new Color[screenWidth * screenHeight];
-        for (int i = 0; i < colorData.Length; i++)
+        for (var i = 0; i < colorData.Length; i++)
         {
             colorData[i] = Color.Green;
         }

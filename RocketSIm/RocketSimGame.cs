@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 
-//TO DO - add menu screen where rocket properties can be changed
+//TO DO - fix bounce when rocket hits ground
 //TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
 
 
@@ -39,8 +39,7 @@ public class RocketSimGame : Game
         _graphics.ApplyChanges();
 
         // Initialize the planet
-        var planetCenter = new Vector2(0, -1 * Planet.DefaultRadius);
-        _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius, planetCenter, _graphics.PreferredBackBufferHeight, 50);
+        _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius);
 
         // Initialize the rocket
         var rocketInitialPhysicsPosition = new Vector2(0, 0);

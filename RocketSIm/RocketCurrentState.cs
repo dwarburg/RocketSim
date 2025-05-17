@@ -12,10 +12,11 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
     public float Fuel { get; private set; } = initialProperties.MaxFuel;
+    public float Tolerance = 1e-3f; // Tolerance for floating point comparisons
 
     private const float GravityConstant = 6.67430e-11f; // in m^3 kg^-1 s^-2
 
-    public void Update(GameTime gameTime, Vector2 planetCenter,  float earthMass,
+    public void Update(GameTime gameTime, Vector2 planetCenter,  float planetMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
     {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -27,23 +28,21 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic
-        if (IsOnOrUnderGround(planet))
+        if (IsOnGround(planet) || IsUnderGround(planet))
         {
             HandleGroundCollision();
-            if (IsUnderGround(planet))
-            {
-                HandleUnderGround();
-            }
         }
         else
         {
             // Calculate gravity
+            ApplyGravity(planetCenter, planetMass);
             var directionToPlanet = planetCenter - Position;
             var distance = directionToPlanet.Length();
             directionToPlanet.Normalize();
-            var gravityForce = (GravityConstant * earthMass * initialProperties.RocketMass) / (distance * distance);
+            var gravityForce = (GravityConstant * planetMass * initialProperties.RocketMass) / (distance * distance);
             Acceleration = directionToPlanet * gravityForce;
         }
+        
         
         // Handle thrust
         if (keyboardState.IsKeyDown(Keys.Space) && Fuel > 0)
@@ -59,12 +58,28 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Velocity += Acceleration * dt;
         Position += Velocity * dt;
     }
+    
+    public void ApplyGravity(Vector2 planetCenter, float planetMass)
+    {
+        // Calculate the gravitational force
+        var directionToPlanet = planetCenter - Position;
+        var distance = directionToPlanet.Length();
+        directionToPlanet.Normalize();
+        var gravityForce = (GravityConstant * planetMass * initialProperties.RocketMass) / (distance * distance);
+        Acceleration = directionToPlanet * gravityForce;
+    }
 
-    public bool IsOnOrUnderGround(Planet planet)
+    public bool NearlyEqual(float a, float b)
+    {
+        return Math.Abs(a - b) < Tolerance;
+    }
+
+
+    public bool IsOnGround(Planet planet)
     {
         //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
         var distanceFromCenter = Vector2.Distance(Position, planet.Center);
-        return distanceFromCenter <= planet.Radius;
+        return NearlyEqual(distanceFromCenter, planet.Radius);
     }
 
     public bool IsUnderGround(Planet planet)
@@ -78,7 +93,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     {
         Velocity = Vector2.Zero;
         Acceleration = Vector2.Zero;
-
+        Position = new Vector2(Position.X, initialPosition.Y);
     }
 
     public void HandleUnderGround()
