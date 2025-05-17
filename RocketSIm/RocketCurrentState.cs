@@ -7,13 +7,13 @@ namespace RocketSim;
 
 public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties initialProperties)
 {
-    public Vector2 Position { get; private set; } = initialPosition;
+    public Vector2 Position { get; private set; } = new (initialPosition.X, initialPosition.Y);
     public Vector2 Velocity { get; private set; } = Vector2.Zero;
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
     public float Fuel { get; private set; } = initialProperties.MaxFuel;
 
-    public void Update(GameTime gameTime, Vector2 planetCenter,  float planetMass,
+    public void Update(GameTime gameTime, Vector2 planetCenter, float planetMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
     {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -25,24 +25,25 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic
-        if (Physics.IsOnGround(planet, Position) || Physics.IsUnderGround(planet, Position))
+        if (Physics.IsOnGround(planet, Position))
         {
             //HandleGroundCollision
-            var collisionData = Physics.HandleGroundCollision(Position, new Vector2(0, rocketHeight));
+            var collisionData = Physics.HandleGroundCollision(Position, initialPosition);
             Position = collisionData[0];
             Velocity = collisionData[1];
             Acceleration = collisionData[2];
-
         }
         else
         {
-            //Acceleration Due to Gravity
-            Acceleration = Vector2.Zero;
-            Acceleration = Physics.ApplyGravity(planet.Center, planet.Mass, Position, 
+            //Force Due to Gravity
+            var gravityForce = Physics.ForceDueToGravity(planet.Center, planet.Mass, Position,
                 Acceleration, initialProperties.RocketMass);
+            //Acceleration Due to Gravity
+            Acceleration = Physics.AccelerationDueToGravity(planet.Center, planet.Mass, Position,
+                initialProperties.RocketMass, gravityForce);
         }
-        
-        
+
+
         // Apply thrust whether rocket is on ground or not
         if (keyboardState.IsKeyDown(Keys.Space) && Fuel > 0)
         {
@@ -57,10 +58,9 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Velocity += Acceleration * dt;
         Position += Velocity * dt;
     }
-    
-    
 
-    public void ResetToInitialPosition(Vector2 initialPosition)
+
+    public void ResetToInitialPosition()
     {
         Position = initialPosition;
         Velocity = Vector2.Zero;
@@ -69,8 +69,8 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         Fuel = initialProperties.MaxFuel; // Reset fuel to initial value
     }
 
-    public void Draw(SpriteBatch spriteBatch, Texture2D rocketTexture, Vector2 rocketWindowPosition){
-
+    public void Draw(SpriteBatch spriteBatch, Texture2D rocketTexture, Vector2 rocketWindowPosition)
+    {
         // Draw the rocket
         spriteBatch.Draw(
             rocketTexture,
@@ -84,5 +84,4 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             0f
         );
     }
-
 }

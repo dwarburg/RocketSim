@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 
 //TO DO - fix bounce when rocket hits ground
 //TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
@@ -11,18 +10,18 @@ namespace RocketSim;
 
 public class RocketSimGame : Game
 {
+    private const double EscapeDebounceDelay = 0.2; // Minimum delay (in seconds) between toggles
     private readonly GraphicsDeviceManager _graphics;
+    private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
+    private SpriteFont _font;
+    private MenuScreen _menuScreen;
 
     private Planet _planet;
     private RocketCurrentState _rocketCurrentState;
-    private RocketInitialProperties _rocketInitialProperties;
-    private SpriteBatch _spriteBatch;
-    private SpriteFont _font;
     private Texture2D _rocketTexture;
     private Texture2D _rocketTextureNoFire;
-    private MenuScreen _menuScreen;
-    private double _escapeDebounceTime = 0; // Tracks the time since the last Escape key toggle
-    private const double EscapeDebounceDelay = 0.2; // Minimum delay (in seconds) between toggles
+    private SpriteBatch _spriteBatch;
+    private readonly RocketInitialProperties _rocketInitialProperties = new();
 
 
     public RocketSimGame()
@@ -65,7 +64,7 @@ public class RocketSimGame : Game
         }
 
         // Initialize the menu screen
-        _menuScreen = new MenuScreen(_font, GraphicsDevice, this);// Pass the Game instance
+        _menuScreen = new MenuScreen(_font, GraphicsDevice, this); // Pass the Game instance
     }
 
     protected override void Update(GameTime gameTime)
@@ -85,7 +84,8 @@ public class RocketSimGame : Game
         if (_menuScreen.IsMenuActive)
         {
             // Update the menu
-            _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0), _rocketInitialProperties); // Pass initial rocket position
+            _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0),
+                _rocketInitialProperties); // Pass initial rocket position
         }
         else
         {
@@ -93,7 +93,8 @@ public class RocketSimGame : Game
             if (keyboardState.IsKeyDown(Keys.X))
                 Exit();
 
-            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet, _rocketTexture?.Height ?? 64);
+            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
+                _rocketTexture?.Height ?? 64);
         }
 
         base.Update(gameTime);
@@ -114,26 +115,21 @@ public class RocketSimGame : Game
         else
         {
             // Draw the game
-            var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2, (float)_graphics.PreferredBackBufferHeight / 2);
-            
+            var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
+                (float)_graphics.PreferredBackBufferHeight / 2);
+
             var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
             if (distanceToSurface <= 540)
-            {
                 //draw green rectangle the width of screen that has its top at the planet surface
                 _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth,
                     _graphics.PreferredBackBufferHeight);
-            }
 
             // Draw the rocket
             //if space key is pressed draw rocket, else draw rocket without fire
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
-            {
                 _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
-            }
             else
-            {
                 _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
-            }
 
             // Display Text Values
             if (_font != null)
@@ -141,12 +137,12 @@ public class RocketSimGame : Game
                 // Display the fuel 
                 _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 10),
                     Color.White);
-                
+
                 // Calculate and display the distance to the planet's center
                 var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
                 var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
                 _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
-                
+
                 // Display the rocket's position
                 var rocketPositionText =
                     $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
