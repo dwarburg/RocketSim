@@ -36,20 +36,4 @@ public class Physics
         return Math.Abs(a - b) < Tolerance;
     }
 
-
-    public static bool IsOnGround(Planet planet, Vector2 position)
-    {
-        //uses distance from center instead of y =0 to check for ground collision so origin can be changed to planet center for other planets
-        var distanceFromCenter = Vector2.Distance(position, planet.Center);
-        var isOnGround = NearlyEqual(distanceFromCenter, planet.Radius) || distanceFromCenter < planet.Radius;
-        return isOnGround;
-    }
-
-    public static List<Vector2> HandleGroundCollision(Vector2 position, Vector2 initialPosition)
-    {
-        position = new Vector2(position.X, initialPosition.Y);
-        var velocity = Vector2.Zero;
-        var acceleration = Vector2.Zero;
-        return [position, velocity, acceleration];
-    }
 }

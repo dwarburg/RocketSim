@@ -25,13 +25,12 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic
-        if (Physics.IsOnGround(planet, Position))
+        if (Position.Y <= 0f) 
         {
             //HandleGroundCollision
-            var collisionData = Physics.HandleGroundCollision(Position, initialPosition);
-            Position = collisionData[0];
-            Velocity = collisionData[1];
-            Acceleration = collisionData[2];
+            Position = new Vector2(Position.X, 0f);
+            Velocity = Vector2.Zero;
+            Acceleration = Vector2.Zero;
         }
         else
         {
