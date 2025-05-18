@@ -11,9 +11,9 @@ public class Planet(float mass, float radius)
 
     public float Mass { get; } = mass;
     public float Radius { get; } = radius;
-    public Vector2 Center { get; } = new(0, -1 * DefaultRadius);
+    public Vector2 Center { get; } = new(0, 0); //Flagging to change for coordinate change
 
-    public void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, float distanceToSurface, int screenWidth,
+    public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, float distanceToSurface, int screenWidth,
         int screenHeight)
     {
         if (distanceToSurface < DefaultLowerAtmosphereHeight)

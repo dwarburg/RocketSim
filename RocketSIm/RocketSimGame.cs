@@ -10,7 +10,7 @@ namespace RocketSim;
 
 public class RocketSimGame : Game
 {
-    private const double EscapeDebounceDelay = 0.2; // Minimum delay (in seconds) between toggles
+    private const double EscapeDebounceDelay = 0.5; // Minimum delay (in seconds) between toggles
     private readonly GraphicsDeviceManager _graphics;
     private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
     private SpriteFont _font;
@@ -41,7 +41,7 @@ public class RocketSimGame : Game
         _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius);
 
         // Initialize the rocket
-        var rocketInitialPhysicsPosition = new Vector2(0, 0);
+        var rocketInitialPhysicsPosition = new Vector2(0, _planet.Radius); //Flagging to change for coordinate change
         var rocketProperties = new RocketInitialProperties();
         _rocketCurrentState = new RocketCurrentState(rocketInitialPhysicsPosition, rocketProperties);
 
@@ -120,7 +120,7 @@ public class RocketSimGame : Game
 
             var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
 
-            _planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
+            Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
                 _graphics.PreferredBackBufferHeight);
 
             // Draw the rocket
