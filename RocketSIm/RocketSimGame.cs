@@ -66,47 +66,50 @@ public class RocketSimGame : Game
         }
 
         // Initialize the menu screen
-        _menuScreen = new MenuScreen(_font, GraphicsDevice, this); // Pass the Game instance
+        _menuScreen = new MenuScreen(_font, GraphicsDevice, this);
 
         // Initialize the map view
-        _mapView = new MapView(_font, GraphicsDevice, this); // Pass the Game instance
+        _mapView = new MapView(); 
     }
 
     protected override void Update(GameTime gameTime)
     {
         var keyboardState = Keyboard.GetState();
 
-        // Update the debounce timer (used to prevent menu flashing on and off)
+        // Update the debounce timers (used to prevent menu flashing on and off)
         _escapeDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
         _mDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
 
-        // Check if the Escape key is pressed and debounce timer has elapsed
+        // Open or close menu
         if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
         {
             _menuScreen.OpenMenu();
             _escapeDebounceTime = DebounceDelay; // Reset the debounce timer
+        }
+
+        // Open or close Map View 
+        if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
+        {
+            if (_mapView.IsMapViewActive)
+            {
+                _mapView.CloseMapView(); // Open the map view
+            }
+            else
+            {
+                _mapView.OpenMapView(); // Open the map view
+            }
+            _mDebounceTime = DebounceDelay; // Reset the debounce timer
+        }
+
+        if (_menuScreen.IsMenuActive)
+        {
             _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0),
                 _rocketInitialProperties); // Pass initial rocket position
-        }
-        else
+        } else
         {
-            // Open Map View if the M key is pressed and debounce timer has elapsed
-            if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
-            {   
-                if (_mapView.IsMapViewActive)
-                {
-                    _mapView.CloseMapView(); // Open the map view
-                }
-                else
-                {
-                    _mapView.OpenMapView(); // Open the map view
-                }
-                _mDebounceTime = DebounceDelay; // Reset the debounce timer
-
-            }
-
+            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
+                _rocketTexture?.Height ?? 64);
         }
-
         base.Update(gameTime);
     }
 
