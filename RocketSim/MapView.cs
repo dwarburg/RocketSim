@@ -35,7 +35,7 @@ public class MapView()
         var screenWidth = spriteBatch.GraphicsDevice.Viewport.Width;
         var screenHeight = spriteBatch.GraphicsDevice.Viewport.Height;
         var rocketPositionOnMapX = (screenWidth / 2) + (rocketState.Position.X/24000);
-        var rocketPositionOnMapY = (screenHeight /2) + (rocketState.Position.Y/24000);
+        var rocketPositionOnMapY = (screenHeight /2) - (rocketState.Position.Y/24000);
         var rocketPositionOnMap = new Vector2(rocketPositionOnMapX, rocketPositionOnMapY);
         var rocketRadius = 10f; // Radius of the rocket circle in pixels
         var rocketCircle = new Texture2D(spriteBatch.GraphicsDevice, (int)rocketRadius * 2, (int)rocketRadius * 2);
