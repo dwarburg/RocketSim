@@ -34,9 +34,9 @@ public class MenuScreen
 
     public bool IsMenuActive { get; private set; }
 
-    public void ToggleMenu()
+    public void OpenMenu()
     {
-        IsMenuActive = !IsMenuActive;
+        IsMenuActive = true;
     }
 
     public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition,
@@ -53,24 +53,19 @@ public class MenuScreen
             return;
         }
 
-        // Check if the exit button is clicked
+        // respond to clicks on each button
         if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) game.Exit();
 
-        // Check if the reset button is clicked
         if (_resetButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
             rocketState.ResetToInitialPosition();
 
-        // Check if the start button is clicked
         if (_startButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
-            // Start the simulation
             IsMenuActive = false;
-            game.IsMouseVisible = false; // Hide the mouse cursor
+            game.IsMouseVisible = false;
         }
 
-        // Check if the edit properties button is clicked
         if (_editPropertiesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
-            // Open the properties editing interface
             _isEditingProperties = true;
     }
 
@@ -110,12 +105,12 @@ public class MenuScreen
 
         // Draw the start button
         spriteBatch.Draw(_buttonTexture, _startButton, Color.Green);
-        spriteBatch.DrawString(_font, "Start Simulation", new Vector2(_startButton.X + 20, _startButton.Y + 15),
+        spriteBatch.DrawString(_font, "Start", new Vector2(_startButton.X + 20, _startButton.Y + 15),
             Color.White);
 
         // Draw the reset button
         spriteBatch.Draw(_buttonTexture, _resetButton, Color.Blue);
-        spriteBatch.DrawString(_font, "Reset Rocket", new Vector2(_resetButton.X + 20, _resetButton.Y + 15),
+        spriteBatch.DrawString(_font, "Reset Position", new Vector2(_resetButton.X + 20, _resetButton.Y + 15),
             Color.White);
 
         // Draw the edit properties button

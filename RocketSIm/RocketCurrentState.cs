@@ -13,12 +13,12 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     public float Rotation { get; private set; }
     public float Fuel { get; private set; } = initialProperties.MaxFuel;
 
+    public float RocketTotalMass => initialProperties.RocketDryMass + Fuel;
+
     public void Update(GameTime gameTime, Vector2 planetCenter, float planetMass,
         KeyboardState keyboardState, Planet planet, float rocketHeight)
     {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        var rocketTotalMass = initialProperties.RocketDryMass + Fuel;
 
         // Handle rotation
         if (keyboardState.IsKeyDown(Keys.Left))
@@ -40,10 +40,10 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         {
             //Force Due to Gravity
             var gravityForce = Physics.ForceDueToGravity(planet.Center, planet.Mass, Position,
-                Acceleration, rocketTotalMass);
+                Acceleration, RocketTotalMass);
             //Acceleration Due to Gravity
             Acceleration = Physics.AccelerationDueToGravity(planet.Center, planet.Mass, Position,
-                rocketTotalMass, gravityForce);
+                RocketTotalMass, gravityForce);
         }
 
 

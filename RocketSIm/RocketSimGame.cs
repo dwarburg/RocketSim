@@ -77,7 +77,7 @@ public class RocketSimGame : Game
         // Check if the Escape key is pressed and debounce timer has elapsed
         if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
         {
-            _menuScreen.ToggleMenu();
+            _menuScreen.OpenMenu();
             _escapeDebounceTime = EscapeDebounceDelay; // Reset the debounce timer
         }
 
@@ -156,6 +156,10 @@ public class RocketSimGame : Game
                 var rocketAccelerationText =
                     $"Acceleration: X={_rocketCurrentState.Acceleration.X:F1}, Y={_rocketCurrentState.Acceleration.Y:F1}";
                 _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 90), Color.White);
+
+                // Display the rocket's total mass
+                var rocketTotalMassText = $"Rocket Total Mass: {_rocketCurrentState.RocketTotalMass :F1} kg";
+                _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 110), Color.White);
             }
         }
 
