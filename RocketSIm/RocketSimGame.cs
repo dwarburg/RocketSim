@@ -6,17 +6,20 @@ namespace RocketSim;
 
 public class RocketSimGame : Game
 {
-    private const double EscapeDebounceDelay = 0.5; // Minimum delay (in seconds) between toggles
+    private const double DebounceDelay = 0.5; // Minimum delay (in seconds) between toggles
     private readonly GraphicsDeviceManager _graphics;
     private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
+    private double _mDebounceTime; // Tracks the time since the last M key toggle
     private SpriteFont _font;
     private MenuScreen _menuScreen;
+    private MapView _mapView;
 
     private Planet _planet;
     private RocketCurrentState _rocketCurrentState;
     private Texture2D _rocketTexture;
     private Texture2D _rocketTextureNoFire;
     private Texture2D _earthSurfaceTexture;
+    private Texture2D _earthMapViewTexture;
     private SpriteBatch _spriteBatch;
     private readonly RocketInitialProperties _rocketInitialProperties = new();
 
@@ -51,6 +54,7 @@ public class RocketSimGame : Game
         _rocketTexture = Content.Load<Texture2D>("rocket");
         _rocketTextureNoFire = Content.Load<Texture2D>("rocketNoFire");
         _earthSurfaceTexture = Content.Load<Texture2D>("earthSurface");
+        _earthMapViewTexture = Content.Load<Texture2D>("earthMapView");
 
         try
         {
@@ -63,6 +67,9 @@ public class RocketSimGame : Game
 
         // Initialize the menu screen
         _menuScreen = new MenuScreen(_font, GraphicsDevice, this); // Pass the Game instance
+
+        // Initialize the map view
+        _mapView = new MapView(_font, GraphicsDevice, this); // Pass the Game instance
     }
 
     protected override void Update(GameTime gameTime)
@@ -71,28 +78,33 @@ public class RocketSimGame : Game
 
         // Update the debounce timer (used to prevent menu flashing on and off)
         _escapeDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
+        _mDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
 
         // Check if the Escape key is pressed and debounce timer has elapsed
         if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
         {
             _menuScreen.OpenMenu();
-            _escapeDebounceTime = EscapeDebounceDelay; // Reset the debounce timer
-        }
-
-        if (_menuScreen.IsMenuActive)
-        {
-            // Update the menu
+            _escapeDebounceTime = DebounceDelay; // Reset the debounce timer
             _menuScreen.Update(this, _rocketCurrentState, new Vector2(0, 0),
                 _rocketInitialProperties); // Pass initial rocket position
         }
         else
         {
-            // Exit game with X key
-            if (keyboardState.IsKeyDown(Keys.X))
-                Exit();
+            // Open Map View if the M key is pressed and debounce timer has elapsed
+            if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
+            {   
+                if (_mapView.IsMapViewActive)
+                {
+                    _mapView.CloseMapView(); // Open the map view
+                }
+                else
+                {
+                    _mapView.OpenMapView(); // Open the map view
+                }
+                _mDebounceTime = DebounceDelay; // Reset the debounce timer
 
-            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
-                _rocketTexture?.Height ?? 64);
+            }
+
         }
 
         base.Update(gameTime);
@@ -112,21 +124,30 @@ public class RocketSimGame : Game
         }
         else
         {
-            var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
-                (float)_graphics.PreferredBackBufferHeight / 2);
-
-            var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
-
-            // Draw the planet surface and atmosphere
-            Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
-                _graphics.PreferredBackBufferHeight, _rocketCurrentState, _earthSurfaceTexture);
-
-            // Draw the rocket
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
-                //if space key is pressed draw rocket, else draw rocket without fire
-                _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
+            // Draw the map view if it's active
+            if (_mapView.IsMapViewActive)
+            {
+                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture);
+            }
             else
-                _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
+            {
+                var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
+                    (float)_graphics.PreferredBackBufferHeight / 2);
+
+                var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+
+                // Draw the planet surface and atmosphere
+                Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
+                    _graphics.PreferredBackBufferHeight, _rocketCurrentState, _earthSurfaceTexture);
+
+                // Draw the rocket
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
+                    //if space key is pressed draw rocket, else draw rocket without fire
+                    _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
+                else
+                    _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
+            }
+            
 
             // Display Text Values
             if (_font != null)
