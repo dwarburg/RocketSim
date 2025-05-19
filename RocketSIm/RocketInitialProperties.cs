@@ -2,7 +2,7 @@
 
 public class RocketInitialProperties(
     float thrustPower = 20000f,
-    float maxFuel = 100f,
+    float maxFuel = 1000f,
     float fuelBurnRate = 20f,
     float rocketDryMass = 1000f)
 {

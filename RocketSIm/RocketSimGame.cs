@@ -20,6 +20,7 @@ public class RocketSimGame : Game
     private RocketCurrentState _rocketCurrentState;
     private Texture2D _rocketTexture;
     private Texture2D _rocketTextureNoFire;
+    private Texture2D _earthSurfaceTexture;
     private SpriteBatch _spriteBatch;
     private readonly RocketInitialProperties _rocketInitialProperties = new();
 
@@ -53,6 +54,7 @@ public class RocketSimGame : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _rocketTexture = Content.Load<Texture2D>("rocket");
         _rocketTextureNoFire = Content.Load<Texture2D>("rocketNoFire");
+        _earthSurfaceTexture = Content.Load<Texture2D>("earthSurface");
 
         try
         {
@@ -114,18 +116,18 @@ public class RocketSimGame : Game
         }
         else
         {
-            // Draw the game
             var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
                 (float)_graphics.PreferredBackBufferHeight / 2);
 
             var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
 
+            // Draw the planet surface and atmosphere
             Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth, 
-                _graphics.PreferredBackBufferHeight);
+                _graphics.PreferredBackBufferHeight, _rocketCurrentState, _earthSurfaceTexture);
 
             // Draw the rocket
-            //if space key is pressed draw rocket, else draw rocket without fire
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
+                //if space key is pressed draw rocket, else draw rocket without fire
                 _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
             else
                 _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
