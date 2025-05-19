@@ -18,6 +18,8 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
     {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+        var rocketTotalMass = initialProperties.RocketDryMass + Fuel;
+
         // Handle rotation
         if (keyboardState.IsKeyDown(Keys.Left))
             Rotation -= MathHelper.ToRadians(90f) * dt;
@@ -29,7 +31,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         {
             //HandleGroundCollision
             //keep X constant and set Y to be exactly on the surface of the planet
-            float newY = (float)Math.Sqrt(planet.Radius * planet.Radius - Position.X * Position.X);
+            var newY = (float)Math.Sqrt(planet.Radius * planet.Radius - Position.X * Position.X);
             Position = new Vector2(Position.X, newY); //Flagging to change for coordinate change
             Velocity = Vector2.Zero;
             Acceleration = Vector2.Zero;
@@ -38,10 +40,10 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         {
             //Force Due to Gravity
             var gravityForce = Physics.ForceDueToGravity(planet.Center, planet.Mass, Position,
-                Acceleration, initialProperties.RocketMass);
+                Acceleration, rocketTotalMass);
             //Acceleration Due to Gravity
             Acceleration = Physics.AccelerationDueToGravity(planet.Center, planet.Mass, Position,
-                initialProperties.RocketMass, gravityForce);
+                rocketTotalMass, gravityForce);
         }
 
 

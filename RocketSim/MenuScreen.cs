@@ -77,14 +77,16 @@ public class MenuScreen
     private void HandleEditPropertiesInput(RocketInitialProperties rocketInitialProperties)
     {
         var keyboardState = Keyboard.GetState();
+        var mouseState = Mouse.GetState();
 
-        // Example: Adjust ThrustPower using arrow keys
-
-        if (keyboardState.IsKeyDown(Keys.Up))
-            rocketInitialProperties.SetThrustPower(rocketInitialProperties.ThrustPower + 100f);
-        if (keyboardState.IsKeyDown(Keys.Down))
-            rocketInitialProperties.SetThrustPower(rocketInitialProperties.ThrustPower - 100f);
-
+        /* when mouse clicks on a property, allow user to type in new value
+        if (mouseState.LeftButton == ButtonState.Pressed)
+        {
+            // Check if the mouse is over a property label and allow editing
+            // This is a placeholder; you would need to implement actual editing logic here
+            // For example, you could use a text input field or sliders to adjust the values
+        }
+        */
 
         // Close the Edit Properties screen with the Escape key
         if (keyboardState.IsKeyDown(Keys.Escape)) _isEditingProperties = false;
@@ -149,7 +151,7 @@ public class MenuScreen
             new Vector2(450, yOffset), Color.White);
         yOffset += 50;
 
-        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketInitialProperties.RocketMass:F1}",
+        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketInitialProperties.RocketDryMass:F1}",
             new Vector2(450, yOffset), Color.White);
 
         spriteBatch.DrawString(_font, "Press Escape to return to the menu", new Vector2(600, 700), Color.White);

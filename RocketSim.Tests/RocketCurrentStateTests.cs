@@ -9,7 +9,7 @@ using RocketSim;
 public class RocketCurrentStateTests
 {
     private static RocketInitialProperties GetDefaultProps() =>
-        new RocketInitialProperties(thrustPower: 1000f, fuel: 100f, fuelBurnRate: 10f, rocketMass: 100f);
+        new RocketInitialProperties(thrustPower: 1000f, maxFuel: 100f, fuelBurnRate: 10f, rocketDryMass: 100f);
 
     private static Planet GetDefaultPlanet(Vector2? center = null, float? radius = null)
     {

@@ -4,7 +4,7 @@ public class RocketInitialProperties(
     float thrustPower = 20000f,
     float maxFuel = 100f,
     float fuelBurnRate = 20f,
-    float rocketMass = 1000f)
+    float rocketDryMass = 1000f)
 {
     public float ThrustPower { get; private set; } = thrustPower;
 
@@ -12,7 +12,7 @@ public class RocketInitialProperties(
 
     public float FuelBurnRate { get; private set; } = fuelBurnRate;
 
-    public float RocketMass { get; private set; } = rocketMass;
+    public float RocketDryMass { get; private set; } = rocketDryMass;
 
     // Controlled modification methods
     public void SetThrustPower(float value)
@@ -32,6 +32,6 @@ public class RocketInitialProperties(
 
     public void SetRocketMass(float value)
     {
-        RocketMass = value;
+        RocketDryMass = value;
     }
 }
