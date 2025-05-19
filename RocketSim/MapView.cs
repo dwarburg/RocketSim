@@ -28,12 +28,25 @@ public class MapView()
 
     public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState, Planet planet, Texture2D earthMapViewTexture)
     {
-        // Draw the map view background from earthMapView sprite
-        spriteBatch.Draw(earthMapViewTexture, new Vector2(0, 0), Color.White);
-
-        // Draw white circle 10 pixels wide at screenWidth/2, screenHeight/4
         var screenWidth = spriteBatch.GraphicsDevice.Viewport.Width;
         var screenHeight = spriteBatch.GraphicsDevice.Viewport.Height;
+
+        // Draw the map view background
+        // with position and origin at screenWidth/2, screenHeight/2
+        spriteBatch.Draw(earthMapViewTexture, 
+            new Vector2(screenWidth / 2, screenHeight / 2), 
+            null, 
+            Color.White, 
+            (float)(System.Math.PI*5/16), //rotate the map so rocket starts on land
+            new Vector2(earthMapViewTexture.Width / 2f, earthMapViewTexture.Height / 2f),
+            1f,
+            SpriteEffects.None, 
+            0f);
+
+        //spriteBatch.Draw(earthMapViewTexture, new Vector2(0, 0), Color.White);
+
+        // Draw white circle 10 pixels wide at screenWidth/2, screenHeight/4
+
         var rocketPositionOnMapX = (screenWidth / 2) + (rocketState.Position.X/24000);
         var rocketPositionOnMapY = (screenHeight /2) - (rocketState.Position.Y/24000);
         var rocketPositionOnMap = new Vector2(rocketPositionOnMapX, rocketPositionOnMapY);
