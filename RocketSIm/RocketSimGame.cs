@@ -164,24 +164,29 @@ public class RocketSimGame : Game
                 var distanceText = $"Distance to Planet Center: {distanceToCenter:F1} meters";
                 _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
 
+                // Calculate and display the distance to the planet's surface
+                var distanceToSurface = distanceToCenter - _planet.Radius;
+                var distanceToSurfaceText = $"Altitude: {distanceToSurface:F1} meters";
+                _spriteBatch.DrawString(_font, distanceToSurfaceText, new Vector2(10, 50), Color.White);
+
                 // Display the rocket's position
                 var rocketPositionText =
                     $"Position: X={_rocketCurrentState.Position.X:F1}, Y={_rocketCurrentState.Position.Y:F1}";
-                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 50), Color.White);
+                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 70), Color.White);
 
                 // Display the rocket's velocity
                 var rocketVelocityText =
                     $"Velocity: X={_rocketCurrentState.Velocity.X:F1}, Y={_rocketCurrentState.Velocity.Y:F1}";
-                _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 70), Color.White);
+                _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 90), Color.White);
 
                 // Display the rocket's acceleration
                 var rocketAccelerationText =
                     $"Acceleration: X={_rocketCurrentState.Acceleration.X:F1}, Y={_rocketCurrentState.Acceleration.Y:F1}";
-                _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 90), Color.White);
+                _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 110), Color.White);
 
                 // Display the rocket's total mass
                 var rocketTotalMassText = $"Rocket Total Mass: {_rocketCurrentState.RocketTotalMass :F1} kg";
-                _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 110), Color.White);
+                _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 130), Color.White);
             }
         }
 

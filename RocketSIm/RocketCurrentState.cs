@@ -27,12 +27,13 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
             Rotation += MathHelper.ToRadians(90f) * dt;
 
         // Ground collision logic based on equation of a circle of planet radius
-        if ((Position.X * Position.X) + (Position.Y * Position.Y) <= planet.Radius * planet.Radius) //Flagging to change for coordinate change
+        if ((Position.X * Position.X) + (Position.Y * Position.Y) <= planet.Radius * planet.Radius) 
         {
             //HandleGroundCollision
             //keep X constant and set Y to be exactly on the surface of the planet
             var newY = (float)Math.Sqrt(planet.Radius * planet.Radius - Position.X * Position.X);
-            Position = new Vector2(Position.X, newY); //Flagging to change for coordinate change
+            if (Position.Y < 0) newY = -newY; 
+            Position = new Vector2(Position.X, newY); 
             Velocity = Vector2.Zero;
             Acceleration = Vector2.Zero;
         }
