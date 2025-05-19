@@ -2,10 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-//TO DO - fix bounce when rocket hits ground
-//TO DO - separate fuelCurrent from fuelMax, rename rocketMass to rocketDryMass and incorporate mass of fuel into new variable rocketMassCurrent
-
-
 namespace RocketSim;
 
 public class RocketSimGame : Game

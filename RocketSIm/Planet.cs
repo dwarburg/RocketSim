@@ -31,16 +31,15 @@ public class Planet(float mass, float radius)
 
         if (distanceToSurface < screenHeight)
         {
-            // Draw green planet surface rectangle where the top border is at DefaultRadius
+            // Draw green planet surface
             
             // coordinate for monogame graphics start from the top left, positive y coordinates go down
             var verticalCoordinateOfSurfaceGraphic = (int)distanceToSurface + screenHeight / 2;
             
             //rotation in radians of the planet surface graphic (to approximate the circuar planet surface)
-            //spiteBatch CANNOT rotate 'Rectangle' objects - only 'sprites' 
             var rotation =  (90f * (Math.PI / 180f)) - Math.Atan2(rocketCurrentState.Position.Y, rocketCurrentState.Position.X);
-            
-            // Draw the planet surface texture with rotation
+
+            // Draw the planet surface texture with rotation - spiteBatch CANNOT rotate 'Rectangle' objects - only 'sprites' 
             spriteBatch.Draw(
                 earthSurfaceTexture,
                 new Vector2(screenWidth / 2, verticalCoordinateOfSurfaceGraphic),
@@ -51,17 +50,6 @@ public class Planet(float mass, float radius)
                 1f,
                 SpriteEffects.None,
                 0f);
-
-            //Draw without rotation
-            /*var planetSurfaceTexture = new Texture2D(graphicsDevice, screenWidth, screenHeight);
-            var colorData = new Color[screenWidth * screenHeight];
-            for (var i = 0; i < colorData.Length; i++) colorData[i] = Color.Green;
-            planetSurfaceTexture.SetData(colorData);
-            spriteBatch.Draw(
-                planetSurfaceTexture,
-                new Rectangle(0, verticalCoordinateOfSurfaceGraphic, screenWidth, screenHeight),
-                Color.Green);
-            */
 
         }
     }
