@@ -14,9 +14,6 @@ namespace RocketSim
         private static readonly int rocketRadius = 10;
         private readonly Texture2D rocketCircle = CreateRocketCircle(graphicsDevice);
 
-        public float PeriapsisFloat { get; private set; } = 0f;
-        public float ApoasisFloat { get; private set; } = 0f;
-
         private static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
         {
             var pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -70,9 +67,6 @@ namespace RocketSim
             // Compute orbit elements
             OrbitElements orbitElements = Physics.ComputeOrbit(rocketState.Position, rocketState.Velocity, planet.Mass);
 
-            PeriapsisFloat = orbitElements.Periapsis.Length() - planet.Radius;
-            ApoasisFloat = orbitElements.Apoasis.Length() - planet.Radius;
-
             if (Physics.OrbitIsEllipse(orbitElements.Eccentricity))
             {
                 // Convert periapsis and axes to pixel units BEFORE drawing
@@ -96,6 +90,10 @@ namespace RocketSim
                     trajectoryColor,
                     trajectoryThickness
                 );
+
+                // Display the periapsis vector in meters for debugging
+                string periapsisText = $"Periapsis (m): {orbitElements.Periapsis}";
+                spriteBatch.DrawString(font, periapsisText, new Vector2(10, 150), Color.White);
             }
         }
 

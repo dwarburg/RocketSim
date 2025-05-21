@@ -10,7 +10,6 @@ namespace RocketSim
         public float SemiMajorAxis;
         public float SemiMinorAxis;
         public Vector2 Periapsis;
-        public Vector2 Apoasis;
     };
 
     public class Physics
@@ -35,15 +34,6 @@ namespace RocketSim
 
             Vector2 direction = Vector2.Normalize(eVec);
             return direction * (a * (1 - e));
-        }
-
-        private static Vector2 ComputeApoasis(Vector2 eVec, float a, float e)
-        {
-            if (e < 1e-6f) return Vector2.Zero; // Circular orbit
-            if (a <= 0 || float.IsNaN(e) || float.IsNaN(a)) return Vector2.Zero;
-            
-            Vector2 direction = Vector2.Normalize(eVec);
-            return direction * (a * (1 + e));
         }
 
         public static bool OrbitIsEllipse(float eccentricity)
@@ -75,8 +65,7 @@ namespace RocketSim
                     EccentricityVector = -Vector2.Normalize(position),
                     SemiMajorAxis = float.NaN,
                     SemiMinorAxis = float.NaN,
-                    Periapsis = Vector2.Zero,
-                    Apoasis = Vector2.Zero
+                    Periapsis = Vector2.Zero
                 };
             }
 
@@ -86,7 +75,6 @@ namespace RocketSim
             float semiMajorAxis = 1f / (2f / r - (v * v) / mu);
             float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1f - eMagnitude * eMagnitude);
             Vector2 periapsis = ComputePeriapsis(eVector, semiMajorAxis, eMagnitude);
-            Vector2 apoasis = ComputeApoasis(eVector, semiMajorAxis, eMagnitude);
 
             return new OrbitElements
             {
@@ -94,8 +82,7 @@ namespace RocketSim
                 EccentricityVector = eVector,
                 SemiMajorAxis = semiMajorAxis,
                 SemiMinorAxis = semiMinorAxis,
-                Periapsis = periapsis,
-                Apoasis = apoasis
+                Periapsis = periapsis
             };
         }
     }
