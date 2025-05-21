@@ -36,4 +36,23 @@ public class Physics
         return Math.Abs(a - b) < Tolerance;
     }
 
+
+    //function to determine if orbit is closed and elliptical
+    public static bool OrbitIsEllipse()
+    {
+        return true; // Placeholder for actual calculation
+    }
+
+    //define function calculateOrbitDimensions that returns a list of 2 floats (x radius and y radius)
+    public static float[] CalculateEllipticalOrbit(Vector2 position, Vector2 velocity, float mass)
+    {
+        // Placeholder for actual calculations
+        var xRadius = 6371000f * 2f /24000; // Placeholder calculation
+        var yRadius = 6371000f * 2f / 24000; // Placeholder calculation
+        return [xRadius, yRadius];
+    }
+
+
+
+
 }

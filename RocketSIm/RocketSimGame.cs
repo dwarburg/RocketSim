@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+//using System.Windows.Forms;
 
 namespace RocketSim;
 
@@ -69,7 +70,8 @@ public class RocketSimGame : Game
         _menuScreen = new MenuScreen(_font, GraphicsDevice, this);
 
         // Initialize the map view
-        _mapView = new MapView(); 
+        _mapView = new MapView(GraphicsDevice);
+
     }
 
     protected override void Update(GameTime gameTime)
