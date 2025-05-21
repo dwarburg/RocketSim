@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+//using SharpDX.Direct2D1;
 using System;
 using System.Windows.Forms;
 
@@ -40,7 +41,7 @@ public class MapView(GraphicsDevice graphicsDevice)
         
     }
 
-    public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState, Planet planet, Texture2D earthMapViewTexture)
+    public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState, Planet planet, Texture2D earthMapViewTexture, SpriteFont font)
     {
         var screenWidth = spriteBatch.GraphicsDevice.Viewport.Width;
         var screenHeight = spriteBatch.GraphicsDevice.Viewport.Height;
@@ -70,16 +71,28 @@ public class MapView(GraphicsDevice graphicsDevice)
 
         if (Physics.OrbitIsEllipse()) {
             // Draw the rocket orbit trajectory
-            var orbitParameters = Physics.CalculateEllipticalOrbit( 
-                rocketState.Position, 
-                rocketState.Velocity,
-                rocketState.RocketTotalMass);
-            var orbitXRadius = orbitParameters[0]; 
-            var orbitYRadius = orbitParameters[1]; 
             var trajectoryColor = Color.White;
             var trajectoryThickness = 2f;
             var trajectorySegments = 100; // Number of segments to draw the ellipse
-            DrawEllipse(spriteBatch, pixel, screenCenter, orbitXRadius, orbitYRadius, trajectorySegments, trajectoryColor, trajectoryThickness);
+
+            OrbitElements orbitElements = Physics.ComputeOrbit(rocketState.Position, rocketState.Velocity, planet.Mass);
+
+            DrawEllipseFromFocusAndPeriapsis(
+                spriteBatch, 
+                pixel, 
+                screenCenter, 
+                orbitElements.Periapsis, 
+                orbitElements.SemiMinorAxis, 
+                trajectorySegments, 
+                trajectoryColor, 
+                trajectoryThickness);
+
+            // Display the Periapsis text
+            var periapsisText =
+                $"Periapsis: {orbitElements.Periapsis}";
+            spriteBatch.DrawString(font, periapsisText, new Vector2(10, 150), Color.White);
+
+
         }
 
     }
@@ -91,17 +104,44 @@ public class MapView(GraphicsDevice graphicsDevice)
         spriteBatch.Draw(pixel, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), (int)thickness), null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 
-    public void DrawEllipse(SpriteBatch spriteBatch, Texture2D pixel, Vector2 center, float radiusX, float radiusY, int segments, Color color, float thickness)
+    public void DrawEllipseFromFocusAndPeriapsis(
+    SpriteBatch spriteBatch,
+    Texture2D pixel,
+    Vector2 focus,
+    Vector2 periapsis,
+    float semiMinorAxis,
+    int segments,
+    Color color,
+    float thickness)
     {
+        Vector2 majorAxisVector = periapsis - focus;
+        float a = majorAxisVector.Length(); // distance from center to periapsis
+        float c = (float)Math.Sqrt(a * a - semiMinorAxis * semiMinorAxis);
+
+        // Get the unit vector along the major axis
+        Vector2 majorUnit = Vector2.Normalize(majorAxisVector);
+
+        // Calculate the center of the ellipse: center is c units *opposite* from periapsis along the major axis
+        Vector2 center = periapsis - majorUnit * c;
+
         Vector2 prev = Vector2.Zero;
         bool first = true;
 
         for (int i = 0; i <= segments; i++)
         {
-            float angle = MathHelper.TwoPi * i / segments;
-            float x = center.X + radiusX * (float)Math.Cos(angle);
-            float y = center.Y + radiusY * (float)Math.Sin(angle);
-            Vector2 point = new Vector2(x, y);
+            float theta = MathHelper.TwoPi * i / segments;
+
+            // Parametric ellipse in axis-aligned coordinates
+            float x = a * (float)Math.Cos(theta);
+            float y = semiMinorAxis * (float)Math.Sin(theta);
+
+            // Rotate to match ellipse orientation
+            Vector2 rotated = new Vector2(
+                x * majorUnit.X - y * majorUnit.Y,
+                x * majorUnit.Y + y * majorUnit.X
+            );
+
+            Vector2 point = center + rotated;
 
             if (!first)
             {
@@ -112,4 +152,5 @@ public class MapView(GraphicsDevice graphicsDevice)
             first = false;
         }
     }
+
 }

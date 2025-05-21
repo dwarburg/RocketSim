@@ -132,7 +132,7 @@ public class RocketSimGame : Game
             // Draw the map view if it's active
             if (_mapView.IsMapViewActive)
             {
-                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture);
+                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture, _font);
             }
             else
             {
