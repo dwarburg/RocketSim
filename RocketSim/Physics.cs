@@ -42,29 +42,34 @@ public class Physics
         return acceleration;
     }
 
-    public static bool NearlyEqual(float a, float b)
+    private static Vector2 ComputePeriapsis(Vector2 eVec, float a, float e)
     {
-        return Math.Abs(a - b) < Tolerance;
-    }
+        if (e < 1e-6f) return Vector2.Zero; // Circular
+        if (a <= 0 || float.IsNaN(e) || float.IsNaN(a)) return Vector2.Zero;
 
+        Vector2 direction = Vector2.Normalize(eVec);
+        return direction * (a * (1 - e));
+    }
 
     //function to determine if orbit is closed and elliptical
-    public static bool OrbitIsEllipse()
+    public static bool OrbitIsEllipse(float eccentricity)
     {
-        return true; // Placeholder for actual calculation
+        return eccentricity < 1.0f;
     }
 
-    //define function calculateOrbitDimensions that returns a list of 2 floats (x radius and y radius)
-    public static float[] CalculateEllipticalOrbit(Vector2 position, Vector2 velocity, float mass)
+    public static string ClassifyOrbit(float eccentricity)
     {
-        // Placeholder for actual calculations
-        var xRadius = 6371000f * 2f /24000; // Placeholder calculation
-        var yRadius = 6371000f * 2f / 24000; // Placeholder calculation
-        return [xRadius, yRadius];
+        if (eccentricity < 1e-6f) return "Circular";
+        if (eccentricity < 1f) return "Elliptical";
+        if (Math.Abs(eccentricity - 1f) < 1e-3f) return "Parabolic";
+        return "Hyperbolic";
     }
 
     public static OrbitElements ComputeOrbit(Vector2 position, Vector2 velocity, float centralMassKg)
     {
+        
+
+
         // Compute the standard gravitational parameter μ = G * M
         float mu = GravityConstant * centralMassKg;
 
@@ -72,28 +77,37 @@ public class Physics
         float v = velocity.Length();        // Magnitude of velocity vector
         float rv = Vector2.Dot(position, velocity); // Dot product of r and v
 
-        // Specific angular momentum (scalar in 2D)
-        float h = position.X * velocity.Y - position.Y * velocity.X;
+        if (v < Tolerance)
+        {
+            return new OrbitElements
+            {
+                Eccentricity = 1f,
+                EccentricityVector = -Vector2.Normalize(position),
+                SemiMajorAxis = float.NaN,
+                SemiMinorAxis = float.NaN,
+                Periapsis = Vector2.Zero // Technically at the focus (center)
+            };
+        }
 
         // Compute eccentricity vector
-        Vector2 eVec = ((v * v - mu / r) * position - rv * velocity) / mu;
-        float e = eVec.Length();
+        Vector2 eVector = ((v * v - mu / r) * position - rv * velocity) / mu;
+        float eMagnitude = eVector.Length();
 
         // Compute semi-major axis
-        float a = 1f / (2f / r - (v * v) / mu);
+        float semiMajorAxis = 1f / (2f / r - (v * v) / mu);
 
         // Compute semi-minor axis
-        float b = a * (float)Math.Sqrt(1f - e * e);
+        float semiMinorAxis = semiMajorAxis * (float)Math.Sqrt(1f - eMagnitude * eMagnitude);
 
         // Compute periapsis position vector (relative to focus at origin)
-        Vector2 periapsis = Vector2.Normalize(eVec) * a;
+        Vector2 periapsis = ComputePeriapsis(eVector, semiMajorAxis, eMagnitude);
 
         return new OrbitElements
         {
-            Eccentricity = e,
-            EccentricityVector = eVec,
-            SemiMajorAxis = a,
-            SemiMinorAxis = b,
+            Eccentricity = eMagnitude,
+            EccentricityVector = eVector,
+            SemiMajorAxis = semiMajorAxis,
+            SemiMinorAxis = semiMinorAxis,
             Periapsis = periapsis
         };
     }

@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-//using SharpDX.Direct2D1;
 using System;
 using System.Windows.Forms;
 
@@ -12,9 +11,10 @@ namespace RocketSim;
 public class MapView(GraphicsDevice graphicsDevice)
 {
     public bool IsMapViewActive { get; private set; } = false;
-
-    // Create variable names Pixel that is a 1x1 white texture when the class initializes
-    private Texture2D pixel = CreatePixel(graphicsDevice);
+    private readonly Texture2D pixel = CreatePixel(graphicsDevice);
+    private static readonly int rocketRadius = 10; 
+    private readonly Texture2D rocketCircle = CreateRocketCircle(graphicsDevice);
+    
     private static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
     {
         var pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -23,7 +23,15 @@ public class MapView(GraphicsDevice graphicsDevice)
         pixel.SetData(colorData);
         return pixel;
     }
-
+    
+    private static Texture2D CreateRocketCircle(GraphicsDevice graphicsDevice)
+    {
+        var rocketCircle = new Texture2D(graphicsDevice, rocketRadius * 2, rocketRadius * 2);
+        var colorData = new Color[rocketRadius * rocketRadius * 4];
+        for (var i = 0; i<colorData.Length; i++) colorData[i] = Color.White;
+        rocketCircle.SetData(colorData);
+        return rocketCircle;
+    }
 
     public void OpenMapView()
     {
@@ -61,40 +69,35 @@ public class MapView(GraphicsDevice graphicsDevice)
         var rocketPositionOnMapX = (screenWidth / 2) + (rocketState.Position.X / 24000);
         var rocketPositionOnMapY = (screenHeight / 2) - (rocketState.Position.Y / 24000);
         var rocketPositionOnMap = new Vector2(rocketPositionOnMapX, rocketPositionOnMapY);
-        var rocketRadius = 10f; // Radius of the rocket circle in pixels
-        var rocketCircle = new Texture2D(spriteBatch.GraphicsDevice, (int)rocketRadius * 2, (int)rocketRadius * 2);
-        var colorData = new Color[(int)rocketRadius * (int)rocketRadius * 4];
-        for (var i = 0; i < colorData.Length; i++) colorData[i] = Color.White;
-        rocketCircle.SetData(colorData);
+
         spriteBatch.Draw(rocketCircle, rocketPositionOnMap - new Vector2(rocketRadius, rocketRadius), Color.White);
+        
+        OrbitElements orbitElements = Physics.ComputeOrbit(rocketState.Position, rocketState.Velocity, planet.Mass);
 
-
-        if (Physics.OrbitIsEllipse()) {
+        if (Physics.OrbitIsEllipse(orbitElements.Eccentricity))
+        {
             // Draw the rocket orbit trajectory
             var trajectoryColor = Color.White;
             var trajectoryThickness = 2f;
             var trajectorySegments = 100; // Number of segments to draw the ellipse
 
-            OrbitElements orbitElements = Physics.ComputeOrbit(rocketState.Position, rocketState.Velocity, planet.Mass);
-
             DrawEllipseFromFocusAndPeriapsis(
-                spriteBatch, 
-                pixel, 
-                screenCenter, 
-                orbitElements.Periapsis, 
-                orbitElements.SemiMinorAxis, 
-                trajectorySegments, 
-                trajectoryColor, 
-                trajectoryThickness);
+                spriteBatch,
+                pixel,
+                screenCenter,
+                orbitElements.Periapsis,
+                orbitElements.SemiMajorAxis,
+                orbitElements.SemiMinorAxis,
+                trajectorySegments,
+                trajectoryColor,
+                trajectoryThickness
+            );
 
             // Display the Periapsis text
             var periapsisText =
                 $"Periapsis: {orbitElements.Periapsis}";
             spriteBatch.DrawString(font, periapsisText, new Vector2(10, 150), Color.White);
-
-
         }
-
     }
 
     public static void DrawLine(SpriteBatch spriteBatch, Texture2D pixel, Vector2 start, Vector2 end, Color color, float thickness)
@@ -105,24 +108,24 @@ public class MapView(GraphicsDevice graphicsDevice)
     }
 
     public void DrawEllipseFromFocusAndPeriapsis(
-    SpriteBatch spriteBatch,
-    Texture2D pixel,
-    Vector2 focus,
-    Vector2 periapsis,
-    float semiMinorAxis,
-    int segments,
-    Color color,
-    float thickness)
+        SpriteBatch spriteBatch,
+        Texture2D pixel,
+        Vector2 focus,
+        Vector2 periapsis,
+        float semiMajorAxis,
+        float semiMinorAxis,
+        int segments,
+        Color color,
+        float thickness
+    )
     {
+        float c = (float)Math.Sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
         Vector2 majorAxisVector = periapsis - focus;
-        float a = majorAxisVector.Length(); // distance from center to periapsis
-        float c = (float)Math.Sqrt(a * a - semiMinorAxis * semiMinorAxis);
-
-        // Get the unit vector along the major axis
         Vector2 majorUnit = Vector2.Normalize(majorAxisVector);
 
-        // Calculate the center of the ellipse: center is c units *opposite* from periapsis along the major axis
-        Vector2 center = periapsis - majorUnit * c;
+        Vector2 center = focus + majorUnit * c; // ellipse center offset towards other focus
+
+        float scale = 1f / 24000f; // meters to pixels
 
         Vector2 prev = Vector2.Zero;
         bool first = true;
@@ -131,11 +134,9 @@ public class MapView(GraphicsDevice graphicsDevice)
         {
             float theta = MathHelper.TwoPi * i / segments;
 
-            // Parametric ellipse in axis-aligned coordinates
-            float x = a * (float)Math.Cos(theta);
+            float x = semiMajorAxis * (float)Math.Cos(theta);
             float y = semiMinorAxis * (float)Math.Sin(theta);
 
-            // Rotate to match ellipse orientation
             Vector2 rotated = new Vector2(
                 x * majorUnit.X - y * majorUnit.Y,
                 x * majorUnit.Y + y * majorUnit.X
@@ -143,14 +144,21 @@ public class MapView(GraphicsDevice graphicsDevice)
 
             Vector2 point = center + rotated;
 
+            // scale to pixels relative to screen center
+            var screenWidth = spriteBatch.GraphicsDevice.Viewport.Width;
+            var screenHeight = spriteBatch.GraphicsDevice.Viewport.Height;
+            var screenCenter = new Vector2(screenWidth / 2, screenHeight / 2);
+            Vector2 pointPixels = screenCenter + (point - focus) * scale;
+
             if (!first)
             {
-                DrawLine(spriteBatch, pixel, prev, point, color, thickness);
+                DrawLine(spriteBatch, pixel, prev, pointPixels, color, thickness);
             }
 
-            prev = point;
+            prev = pointPixels;
             first = false;
         }
     }
+
 
 }
