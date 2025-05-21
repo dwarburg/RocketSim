@@ -1,7 +1,7 @@
 ﻿namespace RocketSim;
 
 public class RocketInitialProperties(
-    float thrustPower = 200000f, //newtons
+    float thrustPower = 400000f, //newtons //unrealistically high to test orbit
     float maxFuel = 1000f, //kg
     float fuelBurnRate = 20f, //kg/s
     float rocketDryMass = 1000f) //kg
