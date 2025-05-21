@@ -39,12 +39,8 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         }
         else
         {
-            //Force Due to Gravity
-            var gravityForce = Physics.ForceDueToGravity(planet.Center, planet.Mass, Position,
-                Acceleration, RocketTotalMass);
             //Acceleration Due to Gravity
-            Acceleration = Physics.AccelerationDueToGravity(planet.Center, planet.Mass, Position,
-                RocketTotalMass, gravityForce);
+            Acceleration = Physics.AccelerationDueToGravity(planet.Center, planet.Mass, Position);
         }
 
 
@@ -53,7 +49,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         {
             var thrust = new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation)) *
                          initialProperties.ThrustPower;
-            Acceleration += thrust;
+            Acceleration += thrust/RocketTotalMass;
             Fuel -= initialProperties.FuelBurnRate * dt;
             if (Fuel < 0) Fuel = 0;
         }

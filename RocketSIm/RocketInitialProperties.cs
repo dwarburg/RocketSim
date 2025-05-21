@@ -1,10 +1,10 @@
 ﻿namespace RocketSim;
 
 public class RocketInitialProperties(
-    float thrustPower = 20000f,
-    float maxFuel = 1000f,
-    float fuelBurnRate = 20f,
-    float rocketDryMass = 1000f)
+    float thrustPower = 200000f, //newtons
+    float maxFuel = 1000f, //kg
+    float fuelBurnRate = 20f, //kg/s
+    float rocketDryMass = 1000f) //kg
 {
     public float ThrustPower { get; private set; } = thrustPower;
 
