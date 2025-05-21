@@ -24,6 +24,10 @@ public class RocketSimGame : Game
     private SpriteBatch _spriteBatch;
     private readonly RocketInitialProperties _rocketInitialProperties = new();
 
+    private OrbitElements orbitElements;
+    private float PeriapsisFloat;
+    private float ApoasisFloat;
+
 
     public RocketSimGame()
     {
@@ -113,6 +117,10 @@ public class RocketSimGame : Game
                 _rocketTexture?.Height ?? 64);
         }
         base.Update(gameTime);
+
+        orbitElements = Physics.ComputeOrbit(_rocketCurrentState.Position, _rocketCurrentState.Velocity, _planet.Mass);
+        PeriapsisFloat = orbitElements.Periapsis.Length() - _planet.Radius;
+        ApoasisFloat = orbitElements.Apoasis.Length() - _planet.Radius;
     }
 
     protected override void Draw(GameTime gameTime)
@@ -132,7 +140,7 @@ public class RocketSimGame : Game
             // Draw the map view if it's active
             if (_mapView.IsMapViewActive)
             {
-                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture, _font);
+                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture, _font, orbitElements);
             }
             else
             {
@@ -191,8 +199,8 @@ public class RocketSimGame : Game
                 _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 130), Color.White);
 
                 //display apoasis and periapsis
-                var apoapsis = _mapView.ApoasisFloat;
-                var periapsis = _mapView.PeriapsisFloat;
+                var apoapsis = ApoasisFloat;
+                var periapsis = PeriapsisFloat;
                 var apoapsisText = $"Apoapsis: {apoapsis:F1} meters";
                 var periapsisText = $"Periapsis: {periapsis:F1} meters";
                 _spriteBatch.DrawString(_font, apoapsisText, new Vector2(10, 150), Color.White);

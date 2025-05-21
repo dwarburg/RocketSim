@@ -14,9 +14,6 @@ namespace RocketSim
         private static readonly int rocketRadius = 10;
         private readonly Texture2D rocketCircle = CreateRocketCircle(graphicsDevice);
 
-        public float PeriapsisFloat { get; private set; } = 0f;
-        public float ApoasisFloat { get; private set; } = 0f;
-
         private static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
         {
             var pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -46,7 +43,7 @@ namespace RocketSim
             // Intentionally left blank for now
         }
 
-        public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState, Planet planet, Texture2D earthMapViewTexture, SpriteFont font)
+        public void Draw(SpriteBatch spriteBatch, RocketCurrentState rocketState, Planet planet, Texture2D earthMapViewTexture, SpriteFont font, OrbitElements orbitElements)
         {
             var screenWidth = spriteBatch.GraphicsDevice.Viewport.Width;
             var screenHeight = spriteBatch.GraphicsDevice.Viewport.Height;
@@ -67,35 +64,32 @@ namespace RocketSim
             Vector2 rocketPosPixels = screenCenter + new Vector2(rocketState.Position.X / MetersPerPixel, -rocketState.Position.Y / MetersPerPixel);
             spriteBatch.Draw(rocketCircle, rocketPosPixels - new Vector2(rocketRadius), Color.White);
 
-            // Compute orbit elements
-            OrbitElements orbitElements = Physics.ComputeOrbit(rocketState.Position, rocketState.Velocity, planet.Mass);
-
-            PeriapsisFloat = orbitElements.Periapsis.Length() - planet.Radius;
-            ApoasisFloat = orbitElements.Apoasis.Length() - planet.Radius;
-
-            if (Physics.OrbitIsEllipse(orbitElements.Eccentricity))
+            if (orbitElements is not null)
             {
-                // Convert periapsis and axes to pixel units BEFORE drawing
-                Vector2 periapsisPixels = screenCenter + new Vector2(orbitElements.Periapsis.X / MetersPerPixel, -orbitElements.Periapsis.Y / MetersPerPixel);
-                float semiMajorAxisPixels = orbitElements.SemiMajorAxis / MetersPerPixel;
-                float semiMinorAxisPixels = orbitElements.SemiMinorAxis / MetersPerPixel;
+                if (Physics.OrbitIsEllipse(orbitElements.Eccentricity))
+                {
+                    // Convert periapsis and axes to pixel units BEFORE drawing
+                    Vector2 periapsisPixels = screenCenter + new Vector2(orbitElements.Periapsis.X / MetersPerPixel, -orbitElements.Periapsis.Y / MetersPerPixel);
+                    float semiMajorAxisPixels = orbitElements.SemiMajorAxis / MetersPerPixel;
+                    float semiMinorAxisPixels = orbitElements.SemiMinorAxis / MetersPerPixel;
 
-                // Draw the rocket orbit trajectory
-                var trajectoryColor = Color.White;
-                var trajectoryThickness = 2f;
-                var trajectorySegments = 100;
+                    // Draw the rocket orbit trajectory
+                    var trajectoryColor = Color.White;
+                    var trajectoryThickness = 2f;
+                    var trajectorySegments = 100;
 
-                DrawEllipseFromFocusAndPeriapsis(
-                    spriteBatch,
-                    pixel,
-                    screenCenter,
-                    periapsisPixels,
-                    semiMajorAxisPixels,
-                    semiMinorAxisPixels,
-                    trajectorySegments,
-                    trajectoryColor,
-                    trajectoryThickness
-                );
+                    DrawEllipseFromFocusAndPeriapsis(
+                        spriteBatch,
+                        pixel,
+                        screenCenter,
+                        periapsisPixels,
+                        semiMajorAxisPixels,
+                        semiMinorAxisPixels,
+                        trajectorySegments,
+                        trajectoryColor,
+                        trajectoryThickness
+                    );
+                }
             }
         }
 
