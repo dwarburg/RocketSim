@@ -189,6 +189,11 @@ public class RocketSimGame : Game
                 // Display the rocket's total mass
                 var rocketTotalMassText = $"Rocket Total Mass: {_rocketCurrentState.RocketTotalMass :F1} kg";
                 _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 130), Color.White);
+
+                //display delta time to 4 decimal places
+                var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                var deltaTimeText = $"Delta Time: {dt:F4} seconds";
+                _spriteBatch.DrawString(_font, deltaTimeText, new Vector2(10, 150), Color.White);
             }
         }
 

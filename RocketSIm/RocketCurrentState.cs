@@ -26,16 +26,26 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         if (keyboardState.IsKeyDown(Keys.Right))
             Rotation += MathHelper.ToRadians(90f) * dt;
 
+        // write message to visual studio debugger
+        //System.Diagnostics.Debug.WriteLine($"Before: Position={Position}, Velocity={Velocity}");
+
         // Ground collision logic based on equation of a circle of planet radius
-        if ((Position.X * Position.X) + (Position.Y * Position.Y) <= planet.Radius * planet.Radius) 
+        // Ground collision logic based on equation of a circle of planet radius
+        if ((Position.X * Position.X) + (Position.Y * Position.Y) <= planet.Radius * planet.Radius)
         {
-            //HandleGroundCollision
-            //keep X constant and set Y to be exactly on the surface of the planet
-            var newY = (float)Math.Sqrt(planet.Radius * planet.Radius - Position.X * Position.X);
-            if (Position.Y < 0) newY = -newY; 
-            Position = new Vector2(Position.X, newY); 
-            Velocity = Vector2.Zero;
-            Acceleration = Vector2.Zero;
+            // Calculate the normal vector from the planet center to the rocket
+            var fromCenter = Vector2.Normalize(Position - planet.Center);
+
+            // If velocity is moving into the planet, snap to surface and zero velocity
+            if (Vector2.Dot(Velocity, fromCenter) < 0)
+            {
+                var newY = (float)Math.Sqrt(planet.Radius * planet.Radius - Position.X * Position.X);
+                if (Position.Y < 0) newY = -newY;
+                Position = new Vector2(Position.X, newY);
+                Velocity = Vector2.Zero;
+                Acceleration = Vector2.Zero;
+            }
+            // Otherwise, let the rocket move away from the surface
         }
         else
         {
