@@ -37,7 +37,7 @@ public class MapView()
             new Vector2(screenWidth / 2, screenHeight / 2), 
             null, 
             Color.White, 
-            (float)(System.Math.PI*5/16), //rotate the map so rocket starts on land
+            0f,
             new Vector2(earthMapViewTexture.Width / 2f, earthMapViewTexture.Height / 2f),
             1f,
             SpriteEffects.None, 
