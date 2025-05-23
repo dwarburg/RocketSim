@@ -1,80 +1,55 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 
-namespace RocketSim
+namespace RocketSim;
+
+internal class HelperMethods
 {
-    internal class HelperMethods
+    public static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
     {
-
-        public static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
-        {
-            var pixel = new Texture2D(graphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
-            return pixel;
-        }
+        var pixel = new Texture2D(graphicsDevice, 1, 1);
+        pixel.SetData([Color.White]);
+        return pixel;
+    }
 
 
-        public static String ConvertMeterToKmIfAbove10k(float meters)
-        {
-            if (Math.Abs(meters) > 10000f)
-            {
-                return $"{(meters / 1000f):F0} Km";
-            }
-            else
-            {
-                return $"{meters} m";
-            }
-        }
+    public static string ConvertMeterToKmIfAbove10k(float meters)
+    {
+        return Math.Abs(meters) > 10000f ? $"{meters / 1000f:F0} Km" : $"{meters} m";
+    }
 
-        public static String ConvertMeterToKmIfAbove10k(Vector2 meters)
-        {
-            if (Math.Abs(meters.X) > 10000f || Math.Abs(meters.Y) > 10000f)
-            {
-                return $"X = {(meters.X / 1000f):F0} Km, Y={(meters.Y / 1000f):F0} Km";
-            }
-            else
-            {
-                return $"X = {(meters.X):F0} m, Y={(meters.Y):F0} m";
-            }
-        }
-        
-        public static bool IsValidFloatChar(char c)
-        {
-            return char.IsDigit(c) || c == '.' || c == '-';
-        }
+    public static string ConvertMeterToKmIfAbove10k(Vector2 meters)
+    {
+        if (Math.Abs(meters.X) > 10000f || Math.Abs(meters.Y) > 10000f)
+            return $"X = {meters.X / 1000f:F0} Km, Y={meters.Y / 1000f:F0} Km";
 
-        public static char GetCharFromKey(Keys key, KeyboardState state)
+        return $"X = {meters.X:F0} m, Y={meters.Y:F0} m";
+    }
+
+    public static bool IsValidFloatChar(char c)
+    {
+        return char.IsDigit(c) || c == '.' || c == '-';
+    }
+
+    public static char GetCharFromKey(Keys key, KeyboardState state)
+    {
+        return key switch
         {
-            switch (key)
-            {
-                case Keys.D0:
-                case Keys.NumPad0: return '0';
-                case Keys.D1:
-                case Keys.NumPad1: return '1';
-                case Keys.D2:
-                case Keys.NumPad2: return '2';
-                case Keys.D3:
-                case Keys.NumPad3: return '3';
-                case Keys.D4:
-                case Keys.NumPad4: return '4';
-                case Keys.D5:
-                case Keys.NumPad5: return '5';
-                case Keys.D6:
-                case Keys.NumPad6: return '6';
-                case Keys.D7:
-                case Keys.NumPad7: return '7';
-                case Keys.D8:
-                case Keys.NumPad8: return '8';
-                case Keys.D9:
-                case Keys.NumPad9: return '9';
-                case Keys.OemPeriod:
-                case Keys.Decimal: return '.';
-                case Keys.OemMinus:
-                case Keys.Subtract: return '-';
-                default: return '\0';
-            }
-        }
+            Keys.D0 or Keys.NumPad0 => '0',
+            Keys.D1 or Keys.NumPad1 => '1',
+            Keys.D2 or Keys.NumPad2 => '2',
+            Keys.D3 or Keys.NumPad3 => '3',
+            Keys.D4 or Keys.NumPad4 => '4',
+            Keys.D5 or Keys.NumPad5 => '5',
+            Keys.D6 or Keys.NumPad6 => '6',
+            Keys.D7 or Keys.NumPad7 => '7',
+            Keys.D8 or Keys.NumPad8 => '8',
+            Keys.D9 or Keys.NumPad9 => '9',
+            Keys.OemPeriod or Keys.Decimal => '.',
+            Keys.OemMinus or Keys.Subtract => '-',
+            _ => '\0'
+        };
     }
 }

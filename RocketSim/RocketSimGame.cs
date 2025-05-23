@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 //using System.Windows.Forms;
 
 namespace RocketSim;
@@ -9,29 +10,29 @@ public class RocketSimGame : Game
 {
     private const double DebounceDelay = 0.5; // Minimum delay (in seconds) between toggles
     private readonly GraphicsDeviceManager _graphics;
-    private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
-    private double _mDebounceTime; // Tracks the time since the last M key toggle
-    private SpriteFont _font;
-    private MenuScreen _menuScreen;
-    private MapView _mapView;
-    private EditRocketPropertiesScreen _editRocketPropertiesScreen;
-
-    private Planet _planet;
-    public RocketCurrentState _rocketCurrentState;
-    private Texture2D _rocketTexture;
-    private Texture2D _rocketTextureNoFire;
-    private Texture2D _earthSurfaceTexture;
-    private Texture2D _earthMapViewTexture;
-    private SpriteBatch _spriteBatch;
     private readonly RocketInitialProperties _rocketInitialProperties = new();
-
-    private OrbitElements orbitElements;
-    private float PeriapsisFloat;
-    private float ApoasisFloat;
+    private Texture2D _earthMapViewTexture;
+    private Texture2D _earthSurfaceTexture;
+    private EditRocketPropertiesScreen _editRocketPropertiesScreen;
+    private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
+    private SpriteFont _font;
+    private MapView _mapView;
+    private double _mDebounceTime; // Tracks the time since the last M key toggle
+    private MenuScreen _menuScreen;
 
     private Texture2D _pixel;
 
-    public Vector2 rocketInitialPhysicsPosition;
+    private Planet _planet;
+    public RocketCurrentState RocketCurrentState;
+    private Texture2D _rocketTexture;
+    private Texture2D _rocketTextureNoFire;
+    private SpriteBatch _spriteBatch;
+    private float _apoapsisFloat;
+
+    private OrbitElements _orbitElements;
+    private float _periapsisFloat;
+
+    public Vector2 RocketInitialPhysicsPosition;
 
     public RocketSimGame()
     {
@@ -50,9 +51,9 @@ public class RocketSimGame : Game
         _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius);
 
         // Initialize the rocket
-        rocketInitialPhysicsPosition = new Vector2(0, _planet.Radius); 
+        RocketInitialPhysicsPosition = new Vector2(0, _planet.Radius);
         var rocketProperties = new RocketInitialProperties();
-        _rocketCurrentState = new RocketCurrentState(rocketInitialPhysicsPosition, rocketProperties);
+        RocketCurrentState = new RocketCurrentState(RocketInitialPhysicsPosition, rocketProperties);
 
         base.Initialize();
     }
@@ -85,9 +86,6 @@ public class RocketSimGame : Game
 
         // Initialize the map view
         _mapView = new MapView(GraphicsDevice, _pixel);
-
-        
-
     }
 
     protected override void Update(GameTime gameTime)
@@ -109,30 +107,23 @@ public class RocketSimGame : Game
         if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
         {
             if (_mapView.IsMapViewActive)
-            {
                 _mapView.CloseMapView(); // Open the map view
-            }
             else
-            {
                 _mapView.OpenMapView(); // Open the map view
-            }
             _mDebounceTime = DebounceDelay; // Reset the debounce timer
         }
 
         if (_menuScreen.IsMenuActive)
-        {
-            _menuScreen.Update(this, _rocketCurrentState, rocketInitialPhysicsPosition,
+            _menuScreen.Update(this, RocketCurrentState, RocketInitialPhysicsPosition,
                 _rocketInitialProperties); // Pass initial rocket position
-        } else
-        {
-            _rocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
+        else
+            RocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
                 _rocketTexture?.Height ?? 64);
-        }
         base.Update(gameTime);
 
-        orbitElements = Physics.ComputeOrbit(_rocketCurrentState.Position, _rocketCurrentState.Velocity, _planet.Mass);
-        PeriapsisFloat = orbitElements.Periapsis.Length() - _planet.Radius;
-        ApoasisFloat = orbitElements.Apoasis.Length() - _planet.Radius;
+        _orbitElements = Physics.ComputeOrbit(RocketCurrentState.Position, RocketCurrentState.Velocity, _planet.Mass);
+        _periapsisFloat = _orbitElements.Periapsis.Length() - _planet.Radius;
+        _apoapsisFloat = _orbitElements.Apoapsis.Length() - _planet.Radius;
     }
 
     protected override void Draw(GameTime gameTime)
@@ -141,7 +132,7 @@ public class RocketSimGame : Game
 
         // Begin a drawing session for sprite batch class that draws graphics in MonoGame framework
         _spriteBatch.Begin();
-        
+
         if (_menuScreen.IsMenuActive)
         {
             // Draw the menu
@@ -152,25 +143,25 @@ public class RocketSimGame : Game
             // Draw the map view if it's active
             if (_mapView.IsMapViewActive)
             {
-                _mapView.Draw(_spriteBatch, _rocketCurrentState, _planet, _earthMapViewTexture, _font, orbitElements);
+                _mapView.Draw(_spriteBatch, RocketCurrentState, _planet, _earthMapViewTexture, _font, _orbitElements);
             }
             else
             {
                 var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
                     (float)_graphics.PreferredBackBufferHeight / 2);
 
-                var distanceToSurface = Vector2.Distance(_rocketCurrentState.Position, _planet.Center) - _planet.Radius;
+                var distanceToSurface = Vector2.Distance(RocketCurrentState.Position, _planet.Center) - _planet.Radius;
 
                 // Draw the planet surface and atmosphere
                 Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight, _rocketCurrentState, _earthSurfaceTexture);
+                    _graphics.PreferredBackBufferHeight, RocketCurrentState, _earthSurfaceTexture);
 
                 // Draw the rocket
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) && _rocketCurrentState.Fuel > 0)
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) && RocketCurrentState.Fuel > 0)
                     //if space key is pressed draw rocket, else draw rocket without fire
-                    _rocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
+                    RocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
                 else
-                    _rocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
+                    RocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
             }
 
 
@@ -178,12 +169,13 @@ public class RocketSimGame : Game
             if (_font != null)
             {
                 // Display the fuel 
-                _spriteBatch.DrawString(_font, $"Fuel: {_rocketCurrentState.Fuel:F1}", new Vector2(10, 10),
+                _spriteBatch.DrawString(_font, $"Fuel: {RocketCurrentState.Fuel:F1}", new Vector2(10, 10),
                     Color.White);
 
                 // Calculate and display the distance to the planet's center
-                var distanceToCenter = Vector2.Distance(_rocketCurrentState.Position, _planet.Center);
-                var distanceText = $"Distance to Planet Center: {HelperMethods.ConvertMeterToKmIfAbove10k(distanceToCenter)}";
+                var distanceToCenter = Vector2.Distance(RocketCurrentState.Position, _planet.Center);
+                var distanceText =
+                    $"Distance to Planet Center: {HelperMethods.ConvertMeterToKmIfAbove10k(distanceToCenter)}";
                 _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
 
                 // Calculate and display the distance to the planet's surface
@@ -193,32 +185,30 @@ public class RocketSimGame : Game
 
                 // Display the rocket's position
                 var rocketPositionText =
-                    $"Position: {HelperMethods.ConvertMeterToKmIfAbove10k(_rocketCurrentState.Position)}";
+                    $"Position: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Position)}";
                 _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 70), Color.White);
 
                 // Display the rocket's velocity
                 var rocketVelocityText =
-                    $"Velocity: {HelperMethods.ConvertMeterToKmIfAbove10k(_rocketCurrentState.Velocity)}";
+                    $"Velocity: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Velocity)}";
                 _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 90), Color.White);
 
                 // Display the rocket's acceleration
                 var rocketAccelerationText =
-                    $"Acceleration: {HelperMethods.ConvertMeterToKmIfAbove10k(_rocketCurrentState.Acceleration)}";
+                    $"Acceleration: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Acceleration)}";
                 _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 110), Color.White);
 
                 // Display the rocket's total mass
-                var rocketTotalMassText = $"Rocket Total Mass: {_rocketCurrentState.RocketTotalMass:F1} kg";
+                var rocketTotalMassText = $"Rocket Total Mass: {RocketCurrentState.RocketTotalMass:F1} kg";
                 _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 130), Color.White);
 
-                //display apoasis and periapsis
-                var apoasis = ApoasisFloat;
-                var periapsis = PeriapsisFloat;
-                var apoasisText = $"Apoapsis: {HelperMethods.ConvertMeterToKmIfAbove10k(apoasis)}";
+                //display apoapsis and periapsis
+                var apoapsis = _apoapsisFloat;
+                var periapsis = _periapsisFloat;
+                var apoapsisText = $"Apoapsis: {HelperMethods.ConvertMeterToKmIfAbove10k(apoapsis)}";
                 var periapsisText = $"Periapsis: {HelperMethods.ConvertMeterToKmIfAbove10k(periapsis)}";
-                _spriteBatch.DrawString(_font, apoasisText, new Vector2(10, 150), Color.White);
+                _spriteBatch.DrawString(_font, apoapsisText, new Vector2(10, 150), Color.White);
                 _spriteBatch.DrawString(_font, periapsisText, new Vector2(10, 170), Color.White);
-
-
             }
         }
 
@@ -228,6 +218,6 @@ public class RocketSimGame : Game
 
     public void ResetRocket(RocketInitialProperties rocketInitialProperties)
     {
-        _rocketCurrentState = new RocketCurrentState(rocketInitialPhysicsPosition, rocketInitialProperties);
+        RocketCurrentState = new RocketCurrentState(RocketInitialPhysicsPosition, rocketInitialProperties);
     }
 }

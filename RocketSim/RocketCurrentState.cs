@@ -7,7 +7,7 @@ namespace RocketSim;
 
 public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties initialProperties)
 {
-    public Vector2 Position { get; private set; } = new (initialPosition.X, initialPosition.Y);
+    public Vector2 Position { get; private set; } = new(initialPosition.X, initialPosition.Y);
     public Vector2 Velocity { get; private set; } = Vector2.Zero;
     public Vector2 Acceleration { get; private set; } = Vector2.Zero;
     public float Rotation { get; private set; }
@@ -31,7 +31,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
 
         // Ground collision logic based on equation of a circle of planet radius
         // Ground collision logic based on equation of a circle of planet radius
-        if ((Position.X * Position.X) + (Position.Y * Position.Y) <= planet.Radius * planet.Radius)
+        if (Position.X * Position.X + Position.Y * Position.Y <= planet.Radius * planet.Radius)
         {
             // Calculate the normal vector from the planet center to the rocket
             var fromCenter = Vector2.Normalize(Position - planet.Center);
@@ -59,7 +59,7 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         {
             var thrust = new Vector2((float)Math.Sin(Rotation), (float)Math.Cos(Rotation)) *
                          initialProperties.ThrustPower;
-            Acceleration += thrust/RocketTotalMass;
+            Acceleration += thrust / RocketTotalMass;
             Fuel -= initialProperties.FuelBurnRate * dt;
             if (Fuel < 0) Fuel = 0;
         }
@@ -67,16 +67,6 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         // Update velocity and position
         Velocity += Acceleration * dt;
         Position += Velocity * dt;
-    }
-
-
-    public void ResetToInitialPosition()
-    {
-        Position = initialPosition;
-        Velocity = Vector2.Zero;
-        Acceleration = Vector2.Zero;
-        Rotation = 0f;
-        Fuel = initialProperties.MaxFuel; // Reset fuel to initial value
     }
 
     public void Draw(SpriteBatch spriteBatch, Texture2D rocketTexture, Vector2 rocketWindowPosition)

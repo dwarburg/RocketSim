@@ -1,6 +1,6 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace RocketSim;
 
@@ -14,7 +14,8 @@ public class Planet(float mass, float radius)
     public float Radius { get; } = radius;
     public Vector2 Center { get; } = new(0, 0); //Flagging to change for coordinate change
 
-    public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, float distanceToSurface, int screenWidth,
+    public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, float distanceToSurface,
+        int screenWidth,
         int screenHeight, RocketCurrentState rocketCurrentState, Texture2D earthSurfaceTexture)
     {
         if (distanceToSurface < DefaultLowerAtmosphereHeight)
@@ -32,12 +33,13 @@ public class Planet(float mass, float radius)
         if (distanceToSurface < screenHeight)
         {
             // Draw green planet surface
-            
+
             // coordinate for monogame graphics start from the top left, positive y coordinates go down
             var verticalCoordinateOfSurfaceGraphic = (int)distanceToSurface + screenHeight / 2;
-            
-            //rotation in radians of the planet surface graphic (to approximate the circuar planet surface)
-            var rotation =  (90f * (Math.PI / 180f)) - Math.Atan2(rocketCurrentState.Position.Y, rocketCurrentState.Position.X);
+
+            //rotation in radians of the planet surface graphic (to approximate the circular planet surface)
+            var rotation = 90f * (Math.PI / 180f) -
+                           Math.Atan2(rocketCurrentState.Position.Y, rocketCurrentState.Position.X);
 
             // Draw the planet surface texture with rotation - spiteBatch CANNOT rotate 'Rectangle' objects - only 'sprites' 
             spriteBatch.Draw(
@@ -50,7 +52,6 @@ public class Planet(float mass, float radius)
                 1f,
                 SpriteEffects.None,
                 0f);
-
         }
     }
 }
