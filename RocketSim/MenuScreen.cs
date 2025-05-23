@@ -10,13 +10,16 @@ public class MenuScreen
     private Rectangle _exitButton, _resetButton, _startButton, _editPropertiesButton;
     private readonly SpriteFont _font;
     private readonly Game _game; // Reference to the Game instance
-    private bool _isEditingProperties; // Tracks if the Edit Properties screen is active
+    private readonly RocketSimGame _rocketSimGame; // Reference to the RocketSimGame instance
+    private  EditRocketPropertiesScreen _editRocketPropertiesScreen; // Reference to the Edit Properties screen
+    public bool IsMenuActive { get; private set; }
 
 
-    public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice, Game game)
+    public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice, Game game, EditRocketPropertiesScreen editRocketPropertiesScreen, RocketSimGame rocketSimGame)
     {
         _font = font;
         _game = game;
+        _editRocketPropertiesScreen = editRocketPropertiesScreen;
 
         // Create a simple button texture
         _buttonTexture = new Texture2D(graphicsDevice, 1, 1);
@@ -30,9 +33,8 @@ public class MenuScreen
         _exitButton = new Rectangle(860, 700, 200, 50);
 
         IsMenuActive = false; // Start with the menu inactive
+        _rocketSimGame = rocketSimGame;
     }
-
-    public bool IsMenuActive { get; private set; }
 
     public void OpenMenu()
     {
@@ -42,14 +44,14 @@ public class MenuScreen
     public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition,
         RocketInitialProperties rocketInitialProperties)
     {
-        if (!IsMenuActive && !_isEditingProperties) return;
+        if (!IsMenuActive && !_editRocketPropertiesScreen.IsVisible) return;
 
         var mouseState = Mouse.GetState();
 
-        if (_isEditingProperties)
+        if (_editRocketPropertiesScreen.IsVisible)
         {
             // Handle input for editing properties (e.g., sliders or buttons)
-            HandleEditPropertiesInput(rocketInitialProperties);
+            _editRocketPropertiesScreen.Update();
             return;
         }
 
@@ -57,7 +59,10 @@ public class MenuScreen
         if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) game.Exit();
 
         if (_resetButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
-            rocketState.ResetToInitialPosition();
+
+            _rocketSimGame.ResetRocket(rocketInitialProperties);
+            //rocketState = new RocketCurrentState(initialRocketPosition, rocketInitialProperties);
+            //rocketState.ResetToInitialPosition();
 
         if (_startButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
@@ -66,39 +71,19 @@ public class MenuScreen
         }
 
         if (_editPropertiesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
-            _isEditingProperties = true;
+            _editRocketPropertiesScreen.IsVisible = true;
     }
-
-    private void HandleEditPropertiesInput(RocketInitialProperties rocketInitialProperties)
-    {
-        var keyboardState = Keyboard.GetState();
-        var mouseState = Mouse.GetState();
-
-        /* when mouse clicks on a property, allow user to type in new value
-        if (mouseState.LeftButton == ButtonState.Pressed)
-        {
-            // Check if the mouse is over a property label and allow editing
-            // This is a placeholder; you would need to implement actual editing logic here
-            // For example, you could use a text input field or sliders to adjust the values
-        }
-        */
-
-        // Close the Edit Properties screen with the Escape key
-        if (keyboardState.IsKeyDown(Keys.Escape)) _isEditingProperties = false;
-    }
-
 
     public void Draw(SpriteBatch spriteBatch, RocketInitialProperties rocketInitialProperties)
     {
-        if (!IsMenuActive && !_isEditingProperties) return;
+        if (!IsMenuActive && !_editRocketPropertiesScreen.IsVisible) return;
 
-        if (_isEditingProperties)
+        if (_editRocketPropertiesScreen.IsVisible)
         {
             // Draw the Edit Properties screen
-            DrawEditPropertiesScreen(spriteBatch, rocketInitialProperties);
+            _editRocketPropertiesScreen.Draw(spriteBatch);
             return;
         }
-
 
         // Make the mouse cursor visible
         _game.IsMouseVisible = true;
@@ -121,34 +106,5 @@ public class MenuScreen
         // Draw the exit button
         spriteBatch.Draw(_buttonTexture, _exitButton, Color.Red);
         spriteBatch.DrawString(_font, "Exit", new Vector2(_exitButton.X + 60, _exitButton.Y + 15), Color.White);
-    }
-
-    private void DrawEditPropertiesScreen(SpriteBatch spriteBatch, RocketInitialProperties rocketInitialProperties)
-    {
-        // Draw a background for the Edit Properties screen
-        var backgroundRect = new Rectangle(400, 200, 1120, 600);
-        spriteBatch.Draw(_buttonTexture, backgroundRect, Color.Gray);
-
-        // Draw labels and values for each property
-        spriteBatch.DrawString(_font, "Edit Rocket Properties", new Vector2(600, 220), Color.White);
-
-        var yOffset = 300;
-        spriteBatch.DrawString(_font, $"Thrust Power: {rocketInitialProperties.ThrustPower:F1}",
-            new Vector2(450, yOffset), Color.White);
-        spriteBatch.DrawString(_font, "Use Up/Down to adjust", new Vector2(800, yOffset), Color.White);
-        yOffset += 50;
-
-        spriteBatch.DrawString(_font, $"maxFuel: {rocketInitialProperties.MaxFuel:F1}", new Vector2(450, yOffset),
-            Color.White);
-        yOffset += 50;
-
-        spriteBatch.DrawString(_font, $"maxFuel Burn Rate: {rocketInitialProperties.FuelBurnRate:F1}",
-            new Vector2(450, yOffset), Color.White);
-        yOffset += 50;
-
-        spriteBatch.DrawString(_font, $"Rocket Mass: {rocketInitialProperties.RocketDryMass:F1}",
-            new Vector2(450, yOffset), Color.White);
-
-        spriteBatch.DrawString(_font, "Press Escape to return to the menu", new Vector2(600, 700), Color.White);
     }
 }

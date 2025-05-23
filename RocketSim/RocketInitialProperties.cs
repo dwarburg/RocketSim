@@ -30,7 +30,7 @@ public class RocketInitialProperties(
         FuelBurnRate = value;
     }
 
-    public void SetRocketMass(float value)
+    public void SetRocketDryMass(float value)
     {
         RocketDryMass = value;
     }

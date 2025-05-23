@@ -5,21 +5,13 @@ using System;
 namespace RocketSim
 {
     // The map view scale: 1 pixel = 24,000 meters (24 km)
-    public class MapView(GraphicsDevice graphicsDevice)
+    public class MapView(GraphicsDevice graphicsDevice, Texture2D pixel)
     {
         private const float MetersPerPixel = 24000f;
 
         public bool IsMapViewActive { get; private set; } = false;
-        private readonly Texture2D pixel = CreatePixel(graphicsDevice);
         private static readonly int rocketRadius = 10;
         private readonly Texture2D rocketCircle = CreateRocketCircle(graphicsDevice);
-
-        private static Texture2D CreatePixel(GraphicsDevice graphicsDevice)
-        {
-            var pixel = new Texture2D(graphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
-            return pixel;
-        }
 
         private static Texture2D CreateRocketCircle(GraphicsDevice graphicsDevice)
         {
