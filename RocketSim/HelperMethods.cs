@@ -15,12 +15,12 @@ internal class HelperMethods
     }
 
 
-    public static string ConvertMeterToKmIfAbove10k(float meters)
+    public static string ConvertMeterToKmIfAbove10K(float meters)
     {
         return Math.Abs(meters) > 10000f ? $"{meters / 1000f:F0} Km" : $"{meters} m";
     }
 
-    public static string ConvertMeterToKmIfAbove10k(Vector2 meters)
+    public static string ConvertMeterToKmIfAbove10K(Vector2 meters)
     {
         if (Math.Abs(meters.X) > 10000f || Math.Abs(meters.Y) > 10000f)
             return $"X = {meters.X / 1000f:F0} Km, Y={meters.Y / 1000f:F0} Km";

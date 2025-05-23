@@ -175,27 +175,27 @@ public class RocketSimGame : Game
                 // Calculate and display the distance to the planet's center
                 var distanceToCenter = Vector2.Distance(RocketCurrentState.Position, _planet.Center);
                 var distanceText =
-                    $"Distance to Planet Center: {HelperMethods.ConvertMeterToKmIfAbove10k(distanceToCenter)}";
+                    $"Distance to Planet Center: {HelperMethods.ConvertMeterToKmIfAbove10K(distanceToCenter)}";
                 _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
 
                 // Calculate and display the distance to the planet's surface
                 var distanceToSurface = distanceToCenter - _planet.Radius;
-                var distanceToSurfaceText = $"Altitude: {HelperMethods.ConvertMeterToKmIfAbove10k(distanceToSurface)}";
+                var distanceToSurfaceText = $"Altitude: {HelperMethods.ConvertMeterToKmIfAbove10K(distanceToSurface)}";
                 _spriteBatch.DrawString(_font, distanceToSurfaceText, new Vector2(10, 50), Color.White);
 
                 // Display the rocket's position
                 var rocketPositionText =
-                    $"Position: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Position)}";
+                    $"Position: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Position)}";
                 _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 70), Color.White);
 
                 // Display the rocket's velocity
                 var rocketVelocityText =
-                    $"Velocity: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Velocity)}";
+                    $"Velocity: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Velocity)}";
                 _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 90), Color.White);
 
                 // Display the rocket's acceleration
                 var rocketAccelerationText =
-                    $"Acceleration: {HelperMethods.ConvertMeterToKmIfAbove10k(RocketCurrentState.Acceleration)}";
+                    $"Acceleration: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Acceleration)}";
                 _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 110), Color.White);
 
                 // Display the rocket's total mass
@@ -205,8 +205,8 @@ public class RocketSimGame : Game
                 //display apoapsis and periapsis
                 var apoapsis = _apoapsisFloat;
                 var periapsis = _periapsisFloat;
-                var apoapsisText = $"Apoapsis: {HelperMethods.ConvertMeterToKmIfAbove10k(apoapsis)}";
-                var periapsisText = $"Periapsis: {HelperMethods.ConvertMeterToKmIfAbove10k(periapsis)}";
+                var apoapsisText = $"Apoapsis: {HelperMethods.ConvertMeterToKmIfAbove10K(apoapsis)}";
+                var periapsisText = $"Periapsis: {HelperMethods.ConvertMeterToKmIfAbove10K(periapsis)}";
                 _spriteBatch.DrawString(_font, apoapsisText, new Vector2(10, 150), Color.White);
                 _spriteBatch.DrawString(_font, periapsisText, new Vector2(10, 170), Color.White);
             }

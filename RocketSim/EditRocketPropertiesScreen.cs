@@ -6,30 +6,19 @@ using Microsoft.Xna.Framework.Input;
 
 namespace RocketSim;
 
-public class EditRocketPropertiesScreen
+public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, RocketInitialProperties props)
 {
-    private readonly List<(string Label, EditableField Field)> _fields;
-    private readonly SpriteFont _font;
-    private readonly RocketInitialProperties _rocketProps;
-    private Texture2D _pixel;
-
-    private KeyboardState _prevKeyboardState;
-
-    public EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, RocketInitialProperties props)
-    {
-        _font = font;
-        _pixel = pixel;
-        _rocketProps = props;
-
-
-        _fields =
+    private readonly List<(string Label, EditableField Field)> _fields =
         [
             ("Dry Mass", new EditableField(font, pixel, props.RocketDryMass, new Rectangle(100, 100, 200, 40))),
             ("Max Fuel", new EditableField(font, pixel, props.MaxFuel, new Rectangle(100, 160, 200, 40))),
             ("Thrust", new EditableField(font, pixel, props.ThrustPower, new Rectangle(100, 220, 200, 40))),
             ("Fuel Burn Rate", new EditableField(font, pixel, props.FuelBurnRate, new Rectangle(100, 280, 200, 40)))
         ];
-    }
+    
+    //private Texture2D _pixel = pixel;
+
+    private KeyboardState _prevKeyboardState;
 
     public bool IsVisible { get; set; }
 
@@ -48,10 +37,10 @@ public class EditRocketPropertiesScreen
         foreach (var (_, field) in _fields) field.Update(mouse, keyboard, _prevKeyboardState);
 
         // Sync back to _rocketProps after editing
-        _rocketProps.SetRocketDryMass(_fields[0].Field.Value);
-        _rocketProps.SetMaxFuel(_fields[1].Field.Value); //maxFuel
-        _rocketProps.SetThrustPower(_fields[2].Field.Value); //Thrust
-        _rocketProps.SetFuelBurnRate(_fields[3].Field.Value); //FuelBurnRate
+        props.SetRocketDryMass(_fields[0].Field.Value);
+        props.SetMaxFuel(_fields[1].Field.Value); //maxFuel
+        props.SetThrustPower(_fields[2].Field.Value); //Thrust
+        props.SetFuelBurnRate(_fields[3].Field.Value); //FuelBurnRate
 
         _prevKeyboardState = keyboard;
     }
@@ -62,7 +51,7 @@ public class EditRocketPropertiesScreen
         {
             // Draw label
             var labelPos = new Vector2(field.Bounds.X - 90, field.Bounds.Y + 10);
-            spriteBatch.DrawString(_font, label + ":", labelPos, Color.White);
+            spriteBatch.DrawString(font, label + ":", labelPos, Color.White);
 
             // Draw field
             field.Draw(spriteBatch);
@@ -70,24 +59,13 @@ public class EditRocketPropertiesScreen
     }
 }
 
-public class EditableField
+public class EditableField(SpriteFont font, Texture2D background, float initialValue, Rectangle bounds)
 {
-    private readonly Texture2D _background;
-
-    private readonly SpriteFont _font;
-    public Rectangle Bounds;
+    public Rectangle Bounds = bounds;
     private string _inputBuffer = "";
 
     private bool _isEditing;
-    public float Value;
-
-    public EditableField(SpriteFont font, Texture2D background, float initialValue, Rectangle bounds)
-    {
-        _font = font;
-        _background = background;
-        Value = initialValue;
-        Bounds = bounds;
-    }
+    public float Value = initialValue;
 
     public void Update(MouseState mouseState, KeyboardState keyboardState, KeyboardState prevKeyboardState)
     {
@@ -104,46 +82,45 @@ public class EditableField
             foreach (var key in keyboardState.GetPressedKeys())
                 if (!prevKeyboardState.IsKeyDown(key))
                 {
-                    if (key == Keys.Enter)
+                    switch (key)
                     {
-                        if (float.TryParse(_inputBuffer, NumberStyles.Float, CultureInfo.InvariantCulture,
-                                out var result))
-                            Value = result;
-                        _isEditing = false;
-                    }
-                    else if (key == Keys.Escape)
-                    {
-                        _isEditing = false;
-                    }
-                    else if (key == Keys.Back && _inputBuffer.Length > 0)
-                    {
-                        _inputBuffer = _inputBuffer.Substring(0, _inputBuffer.Length - 1);
-                    }
-                    else
-                    {
-                        var c = HelperMethods.GetCharFromKey(key, keyboardState);
-                        if (HelperMethods.IsValidFloatChar(c))
-                        {
-                            if (c == '.' && _inputBuffer.Contains('.')) continue;
-                            if (c == '-' && _inputBuffer.Length > 0) continue;
-                            _inputBuffer += c;
-                        }
+                        case Keys.Enter:
+                            if (float.TryParse(_inputBuffer, NumberStyles.Float, CultureInfo.InvariantCulture,
+                                    out var result))
+                                Value = result;
+                            _isEditing = false;
+                            break;
+                        case Keys.Escape:
+                            _isEditing = false;
+                            break;
+                        case Keys.Back when _inputBuffer.Length > 0:
+                            _inputBuffer = _inputBuffer[..^1];
+                            break;
+                        default:
+                            var c = HelperMethods.GetCharFromKey(key, keyboardState);
+                            if (HelperMethods.IsValidFloatChar(c))
+                            {
+                                if (c == '.' && _inputBuffer.Contains('.')) break;
+                                if (c == '-' && _inputBuffer.Length > 0) break;
+                                _inputBuffer += c;
+                            }
+                            break;
                     }
                 }
     }
 
     public void Draw(SpriteBatch spriteBatch)
     {
-        spriteBatch.Draw(_background, Bounds, Color.DarkSlateGray);
+        spriteBatch.Draw(background, Bounds, Color.DarkSlateGray);
 
         var textToDraw = _isEditing ? _inputBuffer + "|" : Value.ToString("0.###", CultureInfo.InvariantCulture);
 
-        var textSize = _font.MeasureString(textToDraw);
+        var textSize = font.MeasureString(textToDraw);
         var textPos = new Vector2(
             Bounds.X + (Bounds.Width - textSize.X) / 2,
             Bounds.Y + (Bounds.Height - textSize.Y) / 2
         );
 
-        spriteBatch.DrawString(_font, textToDraw, textPos, Color.White);
+        spriteBatch.DrawString(font, textToDraw, textPos, Color.White);
     }
 }

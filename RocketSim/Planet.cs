@@ -44,11 +44,11 @@ public class Planet(float mass, float radius)
             // Draw the planet surface texture with rotation - spiteBatch CANNOT rotate 'Rectangle' objects - only 'sprites' 
             spriteBatch.Draw(
                 earthSurfaceTexture,
-                new Vector2(screenWidth / 2, verticalCoordinateOfSurfaceGraphic),
+                new Vector2((float)screenWidth / 2, verticalCoordinateOfSurfaceGraphic),
                 null,
                 Color.White,
                 (float)rotation,
-                new Vector2(screenWidth / 2, 0),
+                new Vector2((float)screenWidth / 2, 0),
                 1f,
                 SpriteEffects.None,
                 0f);
