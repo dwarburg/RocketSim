@@ -20,7 +20,17 @@ public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, Rocket
 
     private KeyboardState _prevKeyboardState;
 
-    public bool IsVisible { get; set; }
+    public bool IsVisible { get; private set; }
+
+    public void Close()
+    {
+        IsVisible = false;
+    }
+
+    public void Open()
+    {
+        IsVisible = true;
+    }
 
     public void Update()
     {

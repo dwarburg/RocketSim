@@ -43,6 +43,14 @@ public class MenuScreen
         IsMenuActive = true;
     }
 
+    public void CloseCurrentMenu()
+    {
+        if (_editRocketPropertiesScreen.IsVisible)
+            _editRocketPropertiesScreen.Close();
+        else
+            IsMenuActive = false;
+    }
+
     public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition,
         RocketInitialProperties rocketInitialProperties)
     {
@@ -73,7 +81,7 @@ public class MenuScreen
         }
 
         if (_editPropertiesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
-            _editRocketPropertiesScreen.IsVisible = true;
+            _editRocketPropertiesScreen.Open();
     }
 
     public void Draw(SpriteBatch spriteBatch, RocketInitialProperties rocketInitialProperties)

@@ -2,8 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-//using System.Windows.Forms;
-
 namespace RocketSim;
 
 public class RocketSimGame : Game
@@ -99,7 +97,10 @@ public class RocketSimGame : Game
         // Open or close menu
         if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
         {
-            _menuScreen.OpenMenu();
+            if (_menuScreen.IsMenuActive)
+                _menuScreen.CloseCurrentMenu();
+            else
+                _menuScreen.OpenMenu();
             _escapeDebounceTime = DebounceDelay; // Reset the debounce timer
         }
 
@@ -107,23 +108,29 @@ public class RocketSimGame : Game
         if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
         {
             if (_mapView.IsMapViewActive)
-                _mapView.CloseMapView(); // Open the map view
+                _mapView.CloseMapView(); 
             else
-                _mapView.OpenMapView(); // Open the map view
+                _mapView.OpenMapView(); 
             _mDebounceTime = DebounceDelay; // Reset the debounce timer
         }
 
+        // WHen menu is open, update the menu but pause simulation by not updating rocketCurrentState
         if (_menuScreen.IsMenuActive)
             _menuScreen.Update(this, RocketCurrentState, RocketInitialPhysicsPosition,
-                _rocketInitialProperties); // Pass initial rocket position
+                _rocketInitialProperties); 
         else
-            RocketCurrentState.Update(gameTime, _planet.Center, _planet.Mass, keyboardState, _planet,
-                _rocketTexture?.Height ?? 64);
+        {
+            RocketCurrentState.Update(gameTime, keyboardState, _planet);
+            _orbitElements =
+                Physics.ComputeOrbit(RocketCurrentState.Position, RocketCurrentState.Velocity, _planet.Mass);
+            _periapsisFloat = _orbitElements.Periapsis.Length() - _planet.Radius;
+            _apoapsisFloat = _orbitElements.Apoapsis.Length() - _planet.Radius;
+        }
+        
+        //necessary base class.Update from MonoGame framework
         base.Update(gameTime);
 
-        _orbitElements = Physics.ComputeOrbit(RocketCurrentState.Position, RocketCurrentState.Velocity, _planet.Mass);
-        _periapsisFloat = _orbitElements.Periapsis.Length() - _planet.Radius;
-        _apoapsisFloat = _orbitElements.Apoapsis.Length() - _planet.Radius;
+        
     }
 
     protected override void Draw(GameTime gameTime)

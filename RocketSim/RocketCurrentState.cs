@@ -15,8 +15,8 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
 
     public float RocketTotalMass => initialProperties.RocketDryMass + Fuel;
 
-    public void Update(GameTime gameTime, Vector2 planetCenter, float planetMass,
-        KeyboardState keyboardState, Planet planet, float rocketHeight)
+    public void Update(GameTime gameTime,
+        KeyboardState keyboardState, Planet planet)
     {
         var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -26,10 +26,6 @@ public class RocketCurrentState(Vector2 initialPosition, RocketInitialProperties
         if (keyboardState.IsKeyDown(Keys.Right))
             Rotation += MathHelper.ToRadians(90f) * dt;
 
-        // write message to visual studio debugger
-        //System.Diagnostics.Debug.WriteLine($"Before: Position={Position}, Velocity={Velocity}");
-
-        // Ground collision logic based on equation of a circle of planet radius
         // Ground collision logic based on equation of a circle of planet radius
         if (Position.X * Position.X + Position.Y * Position.Y <= planet.Radius * planet.Radius)
         {
