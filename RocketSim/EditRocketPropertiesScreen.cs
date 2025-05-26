@@ -6,21 +6,23 @@ using Microsoft.Xna.Framework.Input;
 
 namespace RocketSim;
 
-public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, RocketInitialProperties props)
+public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, RocketInitialProperties props, GraphicsDevice graphicsDevice, RocketSimGame rocketSimGame)
 {
     private readonly List<(string Label, EditableField Field)> _fields =
-        [
-            ("Dry Mass", new EditableField(font, pixel, props.RocketDryMass, new Rectangle(100, 100, 200, 40))),
-            ("Max Fuel", new EditableField(font, pixel, props.MaxFuel, new Rectangle(100, 160, 200, 40))),
-            ("Thrust", new EditableField(font, pixel, props.ThrustPower, new Rectangle(100, 220, 200, 40))),
-            ("Fuel Burn Rate", new EditableField(font, pixel, props.FuelBurnRate, new Rectangle(100, 280, 200, 40)))
-        ];
-    
-    //private Texture2D _pixel = pixel;
+    [
+        ("Dry Mass", new EditableField(font, pixel, props.RocketDryMass, new Rectangle(100, 100, 200, 40))),
+        ("Max Fuel", new EditableField(font, pixel, props.MaxFuel, new Rectangle(100, 160, 200, 40))),
+        ("Thrust", new EditableField(font, pixel, props.ThrustPower, new Rectangle(100, 220, 200, 40))),
+        ("Fuel Burn Rate", new EditableField(font, pixel, props.FuelBurnRate, new Rectangle(100, 280, 200, 40)))
+    ];
 
     private KeyboardState _prevKeyboardState;
 
     public bool IsVisible { get; private set; }
+
+    private Rectangle CommitChangesButton = new Rectangle(860, 700, 200, 50);
+
+    private readonly Texture2D _buttonTexture = new Texture2D(graphicsDevice, 1, 1);
 
     public void Close()
     {
@@ -34,29 +36,40 @@ public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, Rocket
 
     public void Update()
     {
-        var mouse = Mouse.GetState();
-        var keyboard = Keyboard.GetState();
+        var mouseState = Mouse.GetState();
+        var keyboardState = Keyboard.GetState();
 
         //if esc is pressed, change IsVisible to false
-        if (keyboard.IsKeyDown(Keys.Escape) && _prevKeyboardState.IsKeyUp(Keys.Escape))
+        if (keyboardState.IsKeyDown(Keys.Escape) && _prevKeyboardState.IsKeyUp(Keys.Escape))
         {
             IsVisible = false;
             return;
         }
 
-        foreach (var (_, field) in _fields) field.Update(mouse, keyboard, _prevKeyboardState);
-
-        // Sync back to _rocketProps after editing
+        // detect changes to each property 
+        foreach (var (_, field) in _fields) field.Update(mouseState, keyboardState, _prevKeyboardState);
         props.SetRocketDryMass(_fields[0].Field.Value);
         props.SetMaxFuel(_fields[1].Field.Value); //maxFuel
         props.SetThrustPower(_fields[2].Field.Value); //Thrust
         props.SetFuelBurnRate(_fields[3].Field.Value); //FuelBurnRate
 
-        _prevKeyboardState = keyboard;
+        // commit changes
+        if (CommitChangesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+            rocketSimGame.ResetRocket(props);
+
+        //save keyboardState
+        _prevKeyboardState = keyboardState;
     }
 
     public void Draw(SpriteBatch spriteBatch)
     {
+
+        // Draw the commit button
+        _buttonTexture.SetData([Color.White]);
+        spriteBatch.Draw(_buttonTexture, CommitChangesButton, Color.Blue);
+        spriteBatch.DrawString(font, "Save Changes", new Vector2(CommitChangesButton.X + 20, CommitChangesButton.Y + 15),
+            Color.White);
+
         foreach (var (label, field) in _fields)
         {
             // Draw label

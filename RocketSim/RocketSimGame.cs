@@ -77,7 +77,7 @@ public class RocketSimGame : Game
         _pixel = HelperMethods.CreatePixel(GraphicsDevice);
 
         // Initialize the edit rocket properties screen
-        _editRocketPropertiesScreen = new EditRocketPropertiesScreen(_font, _pixel, _rocketInitialProperties);
+        _editRocketPropertiesScreen = new EditRocketPropertiesScreen(_font, _pixel, _rocketInitialProperties, GraphicsDevice, this);
 
         // Initialize the menu screen
         _menuScreen = new MenuScreen(_font, GraphicsDevice, this, _editRocketPropertiesScreen, this);
