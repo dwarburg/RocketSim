@@ -25,10 +25,8 @@ public class RocketSimGame : Game
     private Texture2D _rocketTexture;
     private Texture2D _rocketTextureNoFire;
     private SpriteBatch _spriteBatch;
-    private float _apoapsisFloat;
 
     private OrbitElements _orbitElements;
-    private float _periapsisFloat;
 
     public Vector2 RocketInitialPhysicsPosition;
 
@@ -123,8 +121,6 @@ public class RocketSimGame : Game
             RocketCurrentState.Update(gameTime, keyboardState, _planet);
             _orbitElements =
                 Physics.ComputeOrbit(RocketCurrentState.Position, RocketCurrentState.Velocity, _planet.Mass);
-            _periapsisFloat = _orbitElements.Periapsis.Length() - _planet.Radius;
-            _apoapsisFloat = _orbitElements.Apoapsis.Length() - _planet.Radius;
         }
         
         //necessary base class.Update from MonoGame framework
@@ -175,47 +171,7 @@ public class RocketSimGame : Game
             // Display Text Values
             if (_font != null)
             {
-                // Display the fuel 
-                _spriteBatch.DrawString(_font, $"Fuel: {RocketCurrentState.Fuel:F1}", new Vector2(10, 10),
-                    Color.White);
-
-                // Calculate and display the distance to the planet's center
-                var distanceToCenter = Vector2.Distance(RocketCurrentState.Position, _planet.Center);
-                var distanceText =
-                    $"Distance to Planet Center: {HelperMethods.ConvertMeterToKmIfAbove10K(distanceToCenter)}";
-                _spriteBatch.DrawString(_font, distanceText, new Vector2(10, 30), Color.White);
-
-                // Calculate and display the distance to the planet's surface
-                var distanceToSurface = distanceToCenter - _planet.Radius;
-                var distanceToSurfaceText = $"Altitude: {HelperMethods.ConvertMeterToKmIfAbove10K(distanceToSurface)}";
-                _spriteBatch.DrawString(_font, distanceToSurfaceText, new Vector2(10, 50), Color.White);
-
-                // Display the rocket's position
-                var rocketPositionText =
-                    $"Position: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Position)}";
-                _spriteBatch.DrawString(_font, rocketPositionText, new Vector2(10, 70), Color.White);
-
-                // Display the rocket's velocity
-                var rocketVelocityText =
-                    $"Velocity: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Velocity)}";
-                _spriteBatch.DrawString(_font, rocketVelocityText, new Vector2(10, 90), Color.White);
-
-                // Display the rocket's acceleration
-                var rocketAccelerationText =
-                    $"Acceleration: {HelperMethods.ConvertMeterToKmIfAbove10K(RocketCurrentState.Acceleration)}";
-                _spriteBatch.DrawString(_font, rocketAccelerationText, new Vector2(10, 110), Color.White);
-
-                // Display the rocket's total mass
-                var rocketTotalMassText = $"Rocket Total Mass: {RocketCurrentState.RocketTotalMass:F1} kg";
-                _spriteBatch.DrawString(_font, rocketTotalMassText, new Vector2(10, 130), Color.White);
-
-                //display apoapsis and periapsis
-                var apoapsis = _apoapsisFloat;
-                var periapsis = _periapsisFloat;
-                var apoapsisText = $"Apoapsis: {HelperMethods.ConvertMeterToKmIfAbove10K(apoapsis)}";
-                var periapsisText = $"Periapsis: {HelperMethods.ConvertMeterToKmIfAbove10K(periapsis)}";
-                _spriteBatch.DrawString(_font, apoapsisText, new Vector2(10, 150), Color.White);
-                _spriteBatch.DrawString(_font, periapsisText, new Vector2(10, 170), Color.White);
+                DisplayText.DisplayTextOnScreen(_spriteBatch, _font, RocketCurrentState, _planet, _orbitElements);
             }
         }
 
