@@ -6,29 +6,25 @@ namespace RocketSim;
 
 public class RocketSimGame : Game
 {
-    private const double DebounceDelay = 0.5; // Minimum delay (in seconds) between toggles
+    //built in types
+    private TexturesAndFonts _textures;
+
+    //MonoGame (Microsoft.Xna.Framework) Types
     private readonly GraphicsDeviceManager _graphics;
+    private SpriteBatch _spriteBatch;
+    public Vector2 RocketInitialPhysicsPosition;
+
+    //My custom types
+    private GameRenderer _renderer;
     private readonly RocketInitialProperties _rocketInitialProperties = new();
-    private Texture2D _earthMapViewTexture;
-    private Texture2D _earthSurfaceTexture;
     private EditRocketPropertiesScreen _editRocketPropertiesScreen;
-    private double _escapeDebounceTime; // Tracks the time since the last Escape key toggle
-    private SpriteFont _font;
+    private GameStateManager _gameStateManager;
     private MapView _mapView;
-    private double _mDebounceTime; // Tracks the time since the last M key toggle
     private MenuScreen _menuScreen;
-
-    private Texture2D _pixel;
-
     private Planet _planet;
     public RocketCurrentState RocketCurrentState;
-    private Texture2D _rocketTexture;
-    private Texture2D _rocketTextureNoFire;
-    private SpriteBatch _spriteBatch;
-
     private OrbitElements _orbitElements;
-
-    public Vector2 RocketInitialPhysicsPosition;
+    private InputManager _inputManager;
 
     public RocketSimGame()
     {
@@ -43,13 +39,14 @@ public class RocketSimGame : Game
         _graphics.PreferredBackBufferHeight = 1080;
         _graphics.ApplyChanges();
 
-        // Initialize the planet
         _planet = new Planet(Planet.DefaultMass, Planet.DefaultRadius);
-
-        // Initialize the rocket
+        
         RocketInitialPhysicsPosition = new Vector2(0, _planet.Radius);
-        var rocketProperties = new RocketInitialProperties();
-        RocketCurrentState = new RocketCurrentState(RocketInitialPhysicsPosition, rocketProperties);
+        RocketCurrentState = new RocketCurrentState(RocketInitialPhysicsPosition, new RocketInitialProperties());
+        
+        _orbitElements = new OrbitElements();
+
+        _inputManager = new InputManager();
 
         base.Initialize();
     }
@@ -57,71 +54,54 @@ public class RocketSimGame : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _rocketTexture = Content.Load<Texture2D>("rocket");
-        _rocketTextureNoFire = Content.Load<Texture2D>("rocketNoFire");
-        _earthSurfaceTexture = Content.Load<Texture2D>("earthSurface");
-        _earthMapViewTexture = Content.Load<Texture2D>("earthMapView");
+        _textures = new TexturesAndFonts();
 
-        try
-        {
-            _font = Content.Load<SpriteFont>("DefaultFont");
-        }
-        catch
-        {
-            _font = null;
-        }
+        _textures.LoadTextures(Content, GraphicsDevice);
 
-        //Initialize the pixel texture for drawing
-        _pixel = HelperMethods.CreatePixel(GraphicsDevice);
-
-        // Initialize the edit rocket properties screen
-        _editRocketPropertiesScreen = new EditRocketPropertiesScreen(_font, _pixel, _rocketInitialProperties, GraphicsDevice, this);
+       // Initialize the edit rocket properties screen
+        _editRocketPropertiesScreen = new EditRocketPropertiesScreen(
+            _textures.Font, 
+            _textures.Pixel, 
+            _rocketInitialProperties, 
+            GraphicsDevice, 
+            this
+        );
 
         // Initialize the menu screen
-        _menuScreen = new MenuScreen(_font, GraphicsDevice, this, _editRocketPropertiesScreen, this);
+        _menuScreen = new MenuScreen(_textures.Font, GraphicsDevice, this, _editRocketPropertiesScreen, this);
 
         // Initialize the map view
-        _mapView = new MapView(GraphicsDevice, _pixel);
+        _mapView = new MapView(GraphicsDevice, _textures.Pixel);
+
+        //initialize the game state
+        _gameStateManager = new GameStateManager(
+            _inputManager,
+            _menuScreen,
+            _mapView,
+            RocketCurrentState,
+            _planet,
+            _rocketInitialProperties,
+            RocketInitialPhysicsPosition
+        );
+
+        //initallize the renderer using lambdas to get current rocket state and orbit elements (decoupling)
+        _renderer = new GameRenderer(
+            GraphicsDevice,
+            _graphics,
+            _textures,
+            _menuScreen,
+            _mapView,
+            _rocketInitialProperties,
+            _planet,
+            () => RocketCurrentState,
+            () => _orbitElements
+        );
     }
 
     protected override void Update(GameTime gameTime)
     {
-        var keyboardState = Keyboard.GetState();
-
-        // Update the debounce timers (used to prevent menu flashing on and off)
-        _escapeDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
-        _mDebounceTime -= gameTime.ElapsedGameTime.TotalSeconds;
-
-        // Open or close menu
-        if (keyboardState.IsKeyDown(Keys.Escape) && _escapeDebounceTime <= 0)
-        {
-            if (_menuScreen.IsMenuActive)
-                _menuScreen.CloseCurrentMenu();
-            else
-                _menuScreen.OpenMenu();
-            _escapeDebounceTime = DebounceDelay; // Reset the debounce timer
-        }
-
-        // Open or close Map View 
-        if (keyboardState.IsKeyDown(Keys.M) && _mDebounceTime <= 0)
-        {
-            if (_mapView.IsMapViewActive)
-                _mapView.CloseMapView(); 
-            else
-                _mapView.OpenMapView(); 
-            _mDebounceTime = DebounceDelay; // Reset the debounce timer
-        }
-
-        // WHen menu is open, update the menu but pause simulation by not updating rocketCurrentState
-        if (_menuScreen.IsMenuActive)
-            _menuScreen.Update(this, RocketCurrentState, RocketInitialPhysicsPosition,
-                _rocketInitialProperties); 
-        else
-        {
-            RocketCurrentState.Update(gameTime, keyboardState, _planet);
-            _orbitElements =
-                Physics.ComputeOrbit(RocketCurrentState.Position, RocketCurrentState.Velocity, _planet.Mass);
-        }
+        //my game state class
+        _gameStateManager.Update(gameTime, this);
         
         //necessary base class.Update from MonoGame framework
         base.Update(gameTime);
@@ -131,51 +111,7 @@ public class RocketSimGame : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.Black);
-
-        // Begin a drawing session for sprite batch class that draws graphics in MonoGame framework
-        _spriteBatch.Begin();
-
-        if (_menuScreen.IsMenuActive)
-        {
-            // Draw the menu
-            _menuScreen.Draw(_spriteBatch, _rocketInitialProperties);
-        }
-        else
-        {
-            // Draw the map view if it's active
-            if (_mapView.IsMapViewActive)
-            {
-                _mapView.Draw(_spriteBatch, RocketCurrentState, _planet, _earthMapViewTexture, _font, _orbitElements);
-            }
-            else
-            {
-                var rocketWindowPosition = new Vector2((float)_graphics.PreferredBackBufferWidth / 2,
-                    (float)_graphics.PreferredBackBufferHeight / 2);
-
-                var distanceToSurface = Vector2.Distance(RocketCurrentState.Position, _planet.Center) - _planet.Radius;
-
-                // Draw the planet surface and atmosphere
-                Planet.Draw(_spriteBatch, GraphicsDevice, distanceToSurface, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight, RocketCurrentState, _earthSurfaceTexture);
-
-                // Draw the rocket
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) && RocketCurrentState.Fuel > 0)
-                    //if space key is pressed draw rocket, else draw rocket without fire
-                    RocketCurrentState.Draw(_spriteBatch, _rocketTexture, rocketWindowPosition);
-                else
-                    RocketCurrentState.Draw(_spriteBatch, _rocketTextureNoFire, rocketWindowPosition);
-            }
-
-
-            // Display Text Values
-            if (_font != null)
-            {
-                DisplayText.DisplayTextOnScreen(_spriteBatch, _font, RocketCurrentState, _planet, _orbitElements);
-            }
-        }
-
-        _spriteBatch.End();
+        _renderer.Draw(_spriteBatch);
         base.Draw(gameTime);
     }
 

@@ -7,6 +7,14 @@ namespace RocketSim
     {
         public static void DisplayTextOnScreen(SpriteBatch _spriteBatch, SpriteFont font, RocketCurrentState rocketCurrentState, Planet planet, OrbitElements orbitElements)
         {
+            if (planet == null || rocketCurrentState == null || orbitElements == null){
+                //add text vistual studio debug output
+                System.Diagnostics.Debug.WriteLine($"planet == null {planet == null}");
+                System.Diagnostics.Debug.WriteLine($"rocketCurrentState == null {rocketCurrentState == null}");
+                System.Diagnostics.Debug.WriteLine($"orbitElements == null {orbitElements == null}");
+                return;
+            }         
+
             var _periapsisFloat = orbitElements.Periapsis.Length() - planet.Radius;
             var _apoapsisFloat = orbitElements.Apoapsis.Length() - planet.Radius;
 
