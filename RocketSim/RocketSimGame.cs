@@ -68,7 +68,12 @@ public class RocketSimGame : Game
         );
 
         // Initialize the menu screen
-        _menuScreen = new MenuScreen(_textures.Font, GraphicsDevice, this, _editRocketPropertiesScreen, this);
+        _menuScreen = new MenuScreen(
+            _textures.Font, 
+            GraphicsDevice,
+            _editRocketPropertiesScreen, 
+            this
+        );
 
         // Initialize the map view
         _mapView = new MapView(GraphicsDevice, _textures.Pixel);
@@ -78,7 +83,7 @@ public class RocketSimGame : Game
             _inputManager,
             _menuScreen,
             _mapView,
-            RocketCurrentState,
+            () => RocketCurrentState, //pass the current rocket state as a lambda to decouple from GameStateManager
             _planet,
             _rocketInitialProperties,
             RocketInitialPhysicsPosition

@@ -9,16 +9,14 @@ public class MenuScreen
     private readonly Texture2D _buttonTexture;
     private readonly EditRocketPropertiesScreen _editRocketPropertiesScreen; // Reference to the Edit Properties screen
     private readonly SpriteFont _font;
-    private readonly Game _game; // Reference to the Game instance
     private readonly RocketSimGame _rocketSimGame; // Reference to the RocketSimGame instance
     private Rectangle _exitButton, _resetButton, _startButton, _editPropertiesButton;
 
 
-    public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice, Game game,
+    public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice,
         EditRocketPropertiesScreen editRocketPropertiesScreen, RocketSimGame rocketSimGame)
     {
         _font = font;
-        _game = game;
         _editRocketPropertiesScreen = editRocketPropertiesScreen;
 
         // Create a simple button texture
@@ -51,7 +49,7 @@ public class MenuScreen
             IsMenuActive = false;
     }
 
-    public void Update(Game game, RocketCurrentState rocketState, Vector2 initialRocketPosition,
+    public void Update(RocketCurrentState rocketState, Vector2 initialRocketPosition,
         RocketInitialProperties rocketInitialProperties)
     {
         if (!IsMenuActive && !_editRocketPropertiesScreen.IsVisible) return;
@@ -66,18 +64,16 @@ public class MenuScreen
         }
 
         // respond to clicks on each button
-        if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) game.Exit();
+        if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) _rocketSimGame.Exit();
 
         if (_resetButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
 
             _rocketSimGame.ResetRocket(rocketInitialProperties);
-        //rocketState = new RocketCurrentState(initialRocketPosition, rocketInitialProperties);
-        //rocketState.ResetToInitialPosition();
 
         if (_startButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
         {
             IsMenuActive = false;
-            game.IsMouseVisible = false;
+            _rocketSimGame.IsMouseVisible = false;
         }
 
         if (_editPropertiesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
@@ -96,7 +92,7 @@ public class MenuScreen
         }
 
         // Make the mouse cursor visible
-        _game.IsMouseVisible = true;
+        _rocketSimGame.IsMouseVisible = true;
 
         // Draw the start button
         spriteBatch.Draw(_buttonTexture, _startButton, Color.Green);

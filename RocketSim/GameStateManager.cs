@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace RocketSim;
 
@@ -8,11 +9,11 @@ public class GameStateManager
     private readonly InputManager _inputManager;
     private readonly MenuScreen _menuScreen;
     private readonly MapView _mapView;
-    private readonly RocketCurrentState _rocketCurrentState;
     private readonly Planet _planet;
     private readonly RocketInitialProperties _rocketInitialProperties;
     private readonly Vector2 _rocketInitialPhysicsPosition;
     private OrbitElements _orbitElements;
+    private readonly Func<RocketCurrentState> _getRocketCurrentState;
 
     public OrbitElements OrbitElements => _orbitElements;
 
@@ -20,7 +21,7 @@ public class GameStateManager
         InputManager inputManager,
         MenuScreen menuScreen,
         MapView mapView,
-        RocketCurrentState rocketCurrentState,
+        Func<RocketCurrentState> getRocketCurrentState,
         Planet planet,
         RocketInitialProperties rocketInitialProperties,
         Vector2 rocketInitialPhysicsPosition)
@@ -28,7 +29,7 @@ public class GameStateManager
         _inputManager = inputManager;
         _menuScreen = menuScreen;
         _mapView = mapView;
-        _rocketCurrentState = rocketCurrentState;
+        _getRocketCurrentState = getRocketCurrentState;
         _planet = planet;
         _rocketInitialProperties = rocketInitialProperties;
         _rocketInitialPhysicsPosition = rocketInitialPhysicsPosition;
@@ -61,12 +62,12 @@ public class GameStateManager
         // Menu update or simulation update
         if (_menuScreen.IsMenuActive)
         {
-            _menuScreen.Update(game, _rocketCurrentState, _rocketInitialPhysicsPosition, _rocketInitialProperties);
+            _menuScreen.Update(_getRocketCurrentState(), _rocketInitialPhysicsPosition, _rocketInitialProperties);
         }
         else
         {
-            _rocketCurrentState.Update(gameTime, keyboardState, _planet);
-            _orbitElements = Physics.ComputeOrbit(_rocketCurrentState.Position, _rocketCurrentState.Velocity, _planet.Mass);
+            _getRocketCurrentState().Update(gameTime, keyboardState, _planet);
+            _orbitElements = Physics.ComputeOrbit(_getRocketCurrentState().Position, _getRocketCurrentState().Velocity, _planet.Mass);
         }
     }
 }
