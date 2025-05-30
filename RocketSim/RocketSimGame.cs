@@ -89,7 +89,7 @@ public class RocketSimGame : Game
             RocketInitialPhysicsPosition
         );
 
-        //initallize the renderer using lambdas to get current rocket state and orbit elements (decoupling)
+        //initallize the renderer 
         _renderer = new GameRenderer(
             GraphicsDevice,
             _graphics,
@@ -98,8 +98,8 @@ public class RocketSimGame : Game
             _mapView,
             _rocketInitialProperties,
             _planet,
-            () => RocketCurrentState,
-            () => _orbitElements
+            () => RocketCurrentState, //pass the current rocket state as a lambda to decouple from GameRenderer
+            () => _orbitElements //pass the current orbit elements as a lambda to decouple from GameRenderer
         );
     }
 
@@ -109,9 +109,7 @@ public class RocketSimGame : Game
         _gameStateManager.Update(gameTime, this);
         
         //necessary base class.Update from MonoGame framework
-        base.Update(gameTime);
-
-        
+        base.Update(gameTime);   
     }
 
     protected override void Draw(GameTime gameTime)

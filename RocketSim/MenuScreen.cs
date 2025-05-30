@@ -11,7 +11,7 @@ public class MenuScreen
     private readonly SpriteFont _font;
     private readonly RocketSimGame _rocketSimGame; // Reference to the RocketSimGame instance
     private Rectangle _exitButton, _resetButton, _startButton, _editPropertiesButton;
-
+    private bool _waitForMouseRelease = false;
 
     public MenuScreen(SpriteFont font, GraphicsDevice graphicsDevice,
         EditRocketPropertiesScreen editRocketPropertiesScreen, RocketSimGame rocketSimGame)
@@ -50,24 +50,34 @@ public class MenuScreen
     }
 
     public void Update(RocketCurrentState rocketState, Vector2 initialRocketPosition,
-        RocketInitialProperties rocketInitialProperties)
+    RocketInitialProperties rocketInitialProperties)
     {
         if (!IsMenuActive && !_editRocketPropertiesScreen.IsVisible) return;
 
         var mouseState = Mouse.GetState();
 
+        // If edit screen is visible, update it and set wait flag if it just closed
         if (_editRocketPropertiesScreen.IsVisible)
         {
-            // Handle input for editing properties (e.g., sliders or buttons)
             _editRocketPropertiesScreen.Update();
+            _waitForMouseRelease = true; // Always set while editing
             return;
         }
 
+        // If we are waiting for mouse release, only proceed when button is released
+        if (_waitForMouseRelease)
+        {
+            if (mouseState.LeftButton == ButtonState.Released)
+                _waitForMouseRelease = false;
+            else
+                return;
+        }
+
         // respond to clicks on each button
-        if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) _rocketSimGame.Exit();
+        if (_exitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+            _rocketSimGame.Exit();
 
         if (_resetButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
-
             _rocketSimGame.ResetRocket(rocketInitialProperties);
 
         if (_startButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)

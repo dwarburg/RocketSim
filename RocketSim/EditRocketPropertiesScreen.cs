@@ -20,7 +20,8 @@ public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, Rocket
 
     public bool IsVisible { get; private set; }
 
-    private Rectangle CommitChangesButton = new Rectangle(860, 700, 200, 50);
+    private Rectangle CommitChangesButton = new Rectangle(860, 500, 200, 50);
+    private Rectangle ExitButton = new Rectangle(860, 700, 200, 50);
 
     private readonly Texture2D _buttonTexture = new Texture2D(graphicsDevice, 1, 1);
 
@@ -57,6 +58,12 @@ public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, Rocket
         if (CommitChangesButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
             rocketSimGame.ResetRocket(props);
 
+        // if exit button is clicked, close the screen
+        if (ExitButton.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+        {
+            IsVisible = false;
+        }
+
         //save keyboardState
         _prevKeyboardState = keyboardState;
     }
@@ -69,6 +76,11 @@ public class EditRocketPropertiesScreen(SpriteFont font, Texture2D pixel, Rocket
         spriteBatch.Draw(_buttonTexture, CommitChangesButton, Color.Blue);
         spriteBatch.DrawString(font, "Save Changes", new Vector2(CommitChangesButton.X + 20, CommitChangesButton.Y + 15),
             Color.White);
+
+        // Draw the exit button
+        spriteBatch.Draw(_buttonTexture, ExitButton, Color.Red);
+        spriteBatch.DrawString(font, "Exit", new Vector2(ExitButton.X + 20, ExitButton.Y + 15), Color.White);
+
 
         foreach (var (label, field) in _fields)
         {
