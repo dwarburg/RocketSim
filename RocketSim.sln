@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RocketSim", "RocketSim.csproj", "{AB637766-DFBE-470F-A5C4-30A67A7DF28A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RocketSim", "RocketSIm\RocketSim.csproj", "{AB637766-DFBE-470F-A5C4-30A67A7DF28A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
