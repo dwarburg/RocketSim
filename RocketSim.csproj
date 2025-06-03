@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -20,7 +20,7 @@
     <Exec Command="dotnet tool restore" />
   </Target>
 	<ItemGroup>
-		<MonoGameContentReference Include="C:\Users\dwarb\source\repos\RocketSim\RocketSim\Content\Content.mgcb" />
+		<MonoGameContentReference Include="C:\Users\dwarb\source\repos\RocketSim\RocketSIm\Content\Content.mgcb" />
 	</ItemGroup>
 
 </Project>
